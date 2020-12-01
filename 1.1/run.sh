@@ -1,2 +1,2 @@
 #!/usr/bin/fish
-dotnet fsi calculate2.fsx
+dotnet fsi calculate.fsx
