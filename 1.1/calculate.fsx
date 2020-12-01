@@ -1,5 +1,6 @@
 open System.IO
 
+// File.ReadLines relies on enumerations finally block to dispose stream 
 let readLines (filePath:string) = seq {
     use sr = new StreamReader (filePath)
     while not sr.EndOfStream do
