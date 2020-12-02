@@ -24,14 +24,21 @@ let parseLine (line:string) : RulesAndPassword =
       password = res.[4]}
 
 let makeRegex rulesAndPassword : RegexAndPassword =
-    let str = sprintf @"%O{%i,%i}" rulesAndPassword.character rulesAndPassword.min rulesAndPassword.max 
+    let str = sprintf @"^(?:[^%O]*%O){%i,%i}[^%O]*$" rulesAndPassword.character
+                                                     rulesAndPassword.character
+                                                     rulesAndPassword.min
+                                                     rulesAndPassword.max
+                                                     rulesAndPassword.character
     { rule = Regex str;
       password = rulesAndPassword.password } 
 
 readLines "passord.txt" 
     |> Seq.map parseLine 
     |> Seq.map makeRegex
-    |> Seq.filter (fun i -> i.rule.IsMatch i.password)
-    |> Seq.toList 
+    |> Seq.filter (fun i -> (i.rule.IsMatch (i.password  |> Seq.sort |> String.Concat)))
+    //|> Seq.map (fun i -> i.rule.IsMatch (i.password  |> Seq.sort |> String.Concat), i)
+    |> Seq.toList
     |> List.length
-    |> printf "%i"
+    |> printf "%A \n\n"  
+//    |> List.length
+//    |> printf "%A \n"

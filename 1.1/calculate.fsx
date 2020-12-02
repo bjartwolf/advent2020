@@ -1,7 +1,6 @@
-#r "nuget:FSharp.Collections.ParallelSeq"
 
 open System.IO
-open FSharp.Collections.ParallelSeq
+open System.Diagnostics
 
 
 // File.ReadLines relies on enumerations finally block to dispose stream 
@@ -17,10 +16,15 @@ let crossproduct l1 l2 l3 =
             for el3 in l3 do
                 yield int el1, int el2, int el3 }
 
+let stopWatch = Stopwatch()
+stopWatch.Start()
+
 let numbers = readLines "input.txt" 
 let twentytwenty = crossproduct numbers numbers numbers
-                    |> PSeq.filter (fun (x,y,z) -> x + y + z = 2020) 
+                    |> Seq.filter (fun (x,y,z) -> x + y + z = 2020) 
                     |> Seq.take 1
-                    |> PSeq.map (fun (x,y,z) -> (x,y,z,x+y+z,x*y*z))
+                    |> Seq.map (fun (x,y,z) -> (x,y,z,x+y+z,x*y*z))
 
+stopWatch.Stop()
 printf "%A" twentytwenty
+printf "Stopwatch %A" stopWatch.Elapsed 
