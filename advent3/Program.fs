@@ -1,12 +1,6 @@
 open System
 open System.IO
 
-let readLines (filePath:string) = seq {
-    use sr = new StreamReader (filePath)
-    while not sr.EndOfStream do
-        yield sr.ReadLine ()
-}
-
 type Point = { X: int;
                Y: int } 
 
@@ -20,16 +14,13 @@ let move (from: Point) (direction: Vector) =
     { X = from.X + direction.X;
       Y = from.Y + direction.Y }
 
-let parseLines (lines: string seq): Map =
-
+let parseLines (lines: string array): Map =
     let charToVeg c = 
         c |> Seq.map (fun c -> match c with
-                               | '#' -> Tree 
-                               | _ -> Snow)
-    lines 
-          |> Seq.map (fun s -> s |> charToVeg) 
-          |> Seq.map Seq.toArray 
+                                   | '#' -> Tree 
+                                   | _ -> Snow) 
           |> Seq.toArray
+    lines |> Array.map ((charToVeg))
 
 let getTerrain (map: Map) (pos: Point) =
     let sizeX = map.Length
@@ -43,7 +34,7 @@ let getTerrain (map: Map) (pos: Point) =
 
 [<EntryPoint>]
 let main argv =
-    let input = readLines "input_trees.txt"
+    let input = File.ReadAllLines "input_trees.txt"
     let map = parseLines input
 
     let pos = { X= 0; Y = 0}
