@@ -47,14 +47,14 @@ let main argv =
                     | Some Tree -> moveInMap wrappedPosition direction map (nrOfTrees + 1)
         moveInMap pos direction map nrOfTrees
 
-    printf "Challenge 1: Number of trees %i \n" (moveInMap pos dir map 0)
+    printf "Challenge 1: Number of trees %i \n" (countTrees pos dir map 0)
 
     let slopes = [ { X=1 ; Y=1 };
                    { X=1 ; Y=3 };
                    { X=1 ; Y=5 };
                    { X=1 ; Y=7 };
                    { X=2 ; Y=1 }]
-    let nrOfTrees = slopes |> List.map(fun s-> moveInMap pos s map 0)
+    let nrOfTrees = slopes |> List.map(fun s-> countTrees pos s map 0)
     let product = nrOfTrees |> List.reduce (( * )) 
 
     printf "Challenge 2: Product of trees %i" product
