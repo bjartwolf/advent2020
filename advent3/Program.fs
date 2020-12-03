@@ -52,8 +52,6 @@ let main argv =
     let pos = { X= 0; Y = 0}
     let dir = { X = 1; Y = 3 } // it seems transposed
 
-    printf "%A" (getTerrain map pos)
-    printf "%A" (getTerrain map (move pos dir))
     let rec moveInMap startPos direction map nrOfTrees = 
         let newPosition = move startPos direction 
         let terrain = getTerrain map newPosition
