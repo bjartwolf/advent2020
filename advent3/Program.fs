@@ -21,13 +21,11 @@ let move (from: Point) (direction: Vector) =
       Y = from.Y + direction.Y }
 
 let parseLines (lines: string seq): Map =
-    let charSnow = Convert.ToChar(".") // implicit let charTree = Convert.ToChar("#")
-    let (|Tree|Snow|) character = if character = charSnow then Snow else Tree 
 
     let charToVeg c = 
         c |> Seq.map (fun c -> match c with
-                               | Snow -> Snow
-                               | Tree -> Tree)
+                               | '#' -> Tree 
+                               | _ -> Snow)
     lines 
           |> Seq.map (fun s -> s |> charToVeg) 
           |> Seq.map Seq.toArray 
