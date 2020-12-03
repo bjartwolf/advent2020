@@ -32,18 +32,20 @@ let main argv =
     let pos = { X= 0; Y = 0}
     let dir = { X = 1; Y = 3 } // it seems transposed
 
-    let rec moveInMap pos direction map nrOfTrees = 
+    let countTrees pos direction map nrOfTrees = 
         let sizeX = Array.length map
         let sizeY = Array.length map.[0]
-        let newPosition = move pos direction 
-        if (newPosition.X >= sizeX) then
-             nrOfTrees 
-        else 
-            let wrappedPosition = { newPosition with Y = newPosition.Y % sizeY }
-            let terrain = getTerrain map wrappedPosition 
-            match terrain with
-                | None -> moveInMap wrappedPosition direction map nrOfTrees
-                | Some Tree -> moveInMap wrappedPosition direction map (nrOfTrees + 1)
+        let rec moveInMap pos direction map nrOfTrees = 
+            let newPosition = move pos direction 
+            if (newPosition.X >= sizeX) then
+                 nrOfTrees 
+            else 
+                let wrappedPosition = { newPosition with Y = newPosition.Y % sizeY }
+                let terrain = getTerrain map wrappedPosition 
+                match terrain with
+                    | None -> moveInMap wrappedPosition direction map nrOfTrees
+                    | Some Tree -> moveInMap wrappedPosition direction map (nrOfTrees + 1)
+        moveInMap pos direction map nrOfTrees
 
     printf "Challenge 1: Number of trees %i \n" (moveInMap pos dir map 0)
 
