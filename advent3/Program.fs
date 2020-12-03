@@ -10,9 +10,15 @@ let readLines (filePath:string) = seq {
 type Point = { X: int;
                Y: int } 
 
+type Vector = Point
+
 type Vegetation = Tree | Snow
-type Columns = Vegetation array 
-type Map = Columns array 
+type Rows = Vegetation array 
+type Map = Rows array 
+
+let move (from: Point) (direction: Vector) =
+    { X = from.X + direction.X;
+      Y = from.Y + direction.Y }
 
 let parseLines (lines: string seq): Map =
     let charSnow = Convert.ToChar(".") // implicit let charTree = Convert.ToChar("#")
@@ -29,7 +35,14 @@ let parseLines (lines: string seq): Map =
           |> Seq.toArray
 
 let getTerrain (map: Map) (pos: Point) =
-    map.[pos.X].[pos.Y]
+    let sizeX = map.Length
+    let sizeY = map.[0].Length
+    // wrap Y
+    let y = pos.Y % sizeY
+    if (pos.X >= sizeX) then
+        None
+    else 
+        Some map.[pos.X].[y]
 
 [<EntryPoint>]
 let main argv =
@@ -37,5 +50,16 @@ let main argv =
     let map = parseLines input
 
     let pos = { X= 0; Y = 0}
-    sprintf "%A" (getTerrain map pos)
+    let dir = { X = 1; Y = 3 } // it seems transposed
+
+    printf "%A" (getTerrain map pos)
+    printf "%A" (getTerrain map (move pos dir))
+    let rec moveInMap startPos direction map nrOfTrees = 
+        let newPosition = move startPos direction 
+        let terrain = getTerrain map newPosition
+        match terrain with
+            | Some Snow -> moveInMap newPosition direction map nrOfTrees
+            | Some Tree -> printf "Tre"; moveInMap newPosition direction map (nrOfTrees + 1)
+            | None -> nrOfTrees 
+    printf "Number of trees %i" (moveInMap pos dir map 0)
     0
