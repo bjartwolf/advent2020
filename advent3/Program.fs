@@ -22,14 +22,13 @@ let move (from: Point) (direction: Vector) =
 
 let parseLines (lines: string seq): Map =
     let charSnow = Convert.ToChar(".") // implicit let charTree = Convert.ToChar("#")
-    let stringToChar (s: string seq) = s |> Seq.map (fun s -> s.ToCharArray())
     let (|Tree|Snow|) character = if character = charSnow then Snow else Tree 
 
     let charToVeg c = 
         c |> Seq.map (fun c -> match c with
                                | Snow -> Snow
                                | Tree -> Tree)
-    lines |> stringToChar 
+    lines 
           |> Seq.map (fun s -> s |> charToVeg) 
           |> Seq.map Seq.toArray 
           |> Seq.toArray
@@ -69,5 +68,5 @@ let main argv =
     let nrOfTrees = slopes |> List.map(fun s-> moveInMap pos s map 0)
     let product = nrOfTrees |> List.reduce (( * )) 
 
-    printf "Challenge 2: Product of trees %i \n" product
+    printf "Challenge 2: Product of trees %i" product
     0
