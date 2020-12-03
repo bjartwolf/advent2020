@@ -33,7 +33,9 @@ let getTerrain (map: Map) (pos: Point) =
 
 [<EntryPoint>]
 let main argv =
-    let message = readLines "input_trees.txt"
-    printfn "Hello world %A" (parseLines message)
+    let input = readLines "input_trees.txt"
+    let map = parseLines input
+
     let pos = { X= 0; Y = 0}
+    sprintf "%A" (getTerrain map pos)
     0
