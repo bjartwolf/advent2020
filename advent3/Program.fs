@@ -57,7 +57,7 @@ let main argv =
         let terrain = getTerrain map newPosition
         match terrain with
             | Some Snow -> moveInMap newPosition direction map nrOfTrees
-            | Some Tree -> printf "Tre"; moveInMap newPosition direction map (nrOfTrees + 1)
+            | Some Tree -> moveInMap newPosition direction map (nrOfTrees + 1)
             | None -> nrOfTrees 
     printf "Challenge 1: Number of trees %i \n" (moveInMap pos dir map 0)
 
@@ -69,6 +69,5 @@ let main argv =
     let nrOfTrees = slopes |> List.map(fun s-> moveInMap pos s map 0)
     let product = nrOfTrees |> List.reduce (( * )) 
 
-    printf "Challenge 2: Product of trees %i" product
-
+    printf "Challenge 2: Product of trees %i \n" product
     0
