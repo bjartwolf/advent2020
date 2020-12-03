@@ -6,7 +6,8 @@ type Point = { X: int;
 
 type Vector = Point
 
-type Vegetation = Tree | Snow
+type Tree = Tree
+type Vegetation = Tree option
 type Rows = Vegetation array 
 type Map = Rows array 
 
@@ -17,20 +18,12 @@ let move (from: Point) (direction: Vector) =
 let parseLines (lines: string array): Map =
     let charToVeg c = 
         c |> Seq.map (fun c -> match c with
-                                   | '#' -> Tree 
-                                   | _ -> Snow) 
+                                   | '#' -> Some Tree 
+                                   | _ -> None) 
           |> Seq.toArray
     lines |> Array.map ((charToVeg))
 
-let getTerrain (map: Map) (pos: Point) =
-    let sizeX = map.Length
-    let sizeY = map.[0].Length
-    // wrap Y
-    let y = pos.Y % sizeY
-    if (pos.X >= sizeX) then
-        None
-    else 
-        Some map.[pos.X].[y]
+let getTerrain (map: Map) (pos: Point) = map.[pos.X].[pos.Y]
 
 [<EntryPoint>]
 let main argv =
@@ -40,13 +33,19 @@ let main argv =
     let pos = { X= 0; Y = 0}
     let dir = { X = 1; Y = 3 } // it seems transposed
 
-    let rec moveInMap startPos direction map nrOfTrees = 
-        let newPosition = move startPos direction 
-        let terrain = getTerrain map newPosition
-        match terrain with
-            | Some Snow -> moveInMap newPosition direction map nrOfTrees
-            | Some Tree -> moveInMap newPosition direction map (nrOfTrees + 1)
-            | None -> nrOfTrees 
+    let rec moveInMap pos direction map nrOfTrees = 
+        let sizeX = Array.length map
+        let sizeY = Array.length map.[0]
+        let newPosition = move pos direction 
+        if (newPosition.X >= sizeX) then
+             nrOfTrees 
+        else 
+            let wrappedPosition = { newPosition with Y = newPosition.Y % sizeY }
+            let terrain = getTerrain map wrappedPosition 
+            match terrain with
+                | None -> moveInMap wrappedPosition direction map nrOfTrees
+                | Some Tree -> moveInMap wrappedPosition direction map (nrOfTrees + 1)
+
     printf "Challenge 1: Number of trees %i \n" (moveInMap pos dir map 0)
 
     let slopes = [ { X=1 ; Y=1 };
