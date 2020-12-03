@@ -35,6 +35,7 @@ let main argv =
     let countTrees pos direction map nrOfTrees = 
         let sizeX = Array.length map
         let sizeY = Array.length map.[0]
+
         let rec moveInMap pos direction map nrOfTrees = 
             let newPosition = move pos direction 
             if (newPosition.X >= sizeX) then
@@ -45,6 +46,7 @@ let main argv =
                 match terrain with
                     | None -> moveInMap wrappedPosition direction map nrOfTrees
                     | Some Tree -> moveInMap wrappedPosition direction map (nrOfTrees + 1)
+                    
         moveInMap pos direction map nrOfTrees
 
     printf "Challenge 1: Number of trees %i \n" (countTrees pos dir map 0)
