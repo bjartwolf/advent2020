@@ -1,4 +1,3 @@
-open System
 open System.IO
 
 type Point = { X: int;
@@ -46,7 +45,7 @@ let main argv =
                 match terrain with
                     | None -> moveInMap wrappedPosition direction map nrOfTrees
                     | Some Tree -> moveInMap wrappedPosition direction map (nrOfTrees + 1)
-                    
+
         moveInMap pos direction map nrOfTrees
 
     printf "Challenge 1: Number of trees %i \n" (countTrees pos dir map 0)
