@@ -55,8 +55,8 @@ let main argv =
                    { X=1 ; Y=5 };
                    { X=1 ; Y=7 };
                    { X=2 ; Y=1 }]
-    let nrOfTrees = slopes |> List.map(fun s-> countTrees pos s map 0)
-    let baumproduktbergabrutchen = nrOfTrees |> List.reduce (( * )) 
+    let baumbergabrutchenzahlen = slopes |> List.map(fun s-> countTrees pos s map 0)
+    let baumproduktbergabrutchen = baumbergabrutchenzahlen |> List.reduce (( * )) 
 
     printf "Challenge 2: Product of trees %i" baumproduktbergabrutchen 
     0
