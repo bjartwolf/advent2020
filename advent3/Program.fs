@@ -7,8 +7,7 @@ type Point = { X: int;
 type Vector = Point
 
 type Tree = Tree
-type Vegetation = Tree option
-type Rows = Vegetation array 
+type Rows = Tree option array 
 type Map = Rows array 
 
 let move (from: Point) (direction: Vector) =
