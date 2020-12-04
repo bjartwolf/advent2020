@@ -33,14 +33,14 @@ module PassportData =
             | Some int when int |> between 2020 2030 -> Some (ExpirationYear int)
             | _ -> None 
     
-    let inchesRegex = Regex "^([0-9]{2})in$"
-    let cmRegex = Regex "^([0-9]{3})cm$"
+    let private inchesRegex = Regex "^([0-9]{2})in$"
+    let private cmRegex = Regex "^([0-9]{3})cm$"
 
-    let (|IN |_|) input =
+    let private (|IN |_|) input =
        let m = inchesRegex.Match(input) 
        if (m.Success) then Some (int m.Groups.[1].Value) else None  
 
-    let (|CM|_|) input =
+    let private (|CM|_|) input =
        let m = cmRegex.Match(input) 
        if (m.Success) then Some (int m.Groups.[1].Value) else None  
     
