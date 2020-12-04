@@ -4,13 +4,10 @@ open System.Text
 open System.Collections.Generic
 open System.Text.RegularExpressions
 
-module TryParser = 
+module PassportData =
     let parseInt (i:string) = match System.Int32.TryParse i with 
                                 | true, v -> Some v
                                 | false, _ -> None
-
-module PassportData =
-    open TryParser
 
     type BirthYear = private BirthYear of int 
     let tryCreateByr str : BirthYear option = 
@@ -111,13 +108,13 @@ let main argv =
 
     let createPassport (p: IDictionary<string,string>) =
         if passPortHasKeys p then 
-            let birthYear = PassportData.tryCreateByr p.["byr"]
-            let issueYear = PassportData.tryCreateIyr p.["iyr"]
-            let expiratoinYear = PassportData.tryCreateEyr p.["eyr"]
-            let height = PassportData.tryCreateHgt p.["hgt"]
-            let haircolor = PassportData.tryCreateHcl p.["hcl"]
-            let eyecolor = PassportData.tryCreateEcl p.["ecl"]
-            let passportId = PassportData.tryCreatePasportId p.["pid"]
+            let birthYear = tryCreateByr p.["byr"]
+            let issueYear = tryCreateIyr p.["iyr"]
+            let expiratoinYear = tryCreateEyr p.["eyr"]
+            let height = tryCreateHgt p.["hgt"]
+            let haircolor = tryCreateHcl p.["hcl"]
+            let eyecolor = tryCreateEcl p.["ecl"]
+            let passportId = tryCreatePasportId p.["pid"]
             match birthYear, issueYear, expiratoinYear, height, haircolor, eyecolor, passportId with 
                 | Some birthYear, Some issueYear, 
                   Some expiratoinYear, Some height,
