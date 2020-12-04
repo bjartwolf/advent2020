@@ -112,10 +112,7 @@ let main argv =
         keys.Contains("pid")
 
     let createPassport (p: IDictionary<string,string>) =
-        if (passPortHasKeys p |> not) then 
-            None
-        else 
-            let birthYear = PassportData.tryCreateByr p.["byr"]
+        if passPortHasKeys p then 
             let issueYear = PassportData.tryCreateIyr p.["iyr"]
             let expiratoinYear = PassportData.tryCreateEyr p.["eyr"]
             let height = PassportData.tryCreateHgt p.["hgt"]
@@ -128,6 +125,8 @@ let main argv =
                   Some haircolor, Some eyecolor,
                   Some passportId  -> Some (PassPort (birthYear, issueYear, expiratoinYear, height, haircolor, eyecolor, passportId))
                 |  _ -> None
+        else 
+            None
 
     let validpassPorts= lines |> List.map (fun s -> s.Split([|" "|], StringSplitOptions.RemoveEmptyEntries)) 
                               |> List.map (fun s -> s |> createPassPortDictionary) 
