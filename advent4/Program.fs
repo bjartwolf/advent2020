@@ -10,25 +10,27 @@ module PassportData =
             | true, v -> Some v
             | false, _ -> None
 
+    let between min max value = value >= min && value <= max 
+
     type BirthYear = private BirthYear of int 
     let tryCreateByr str : BirthYear option = 
         let year = parseInt str 
         match year with 
-            | Some int when int <= 2002 && int >= 1920 -> Some (BirthYear int)
+            | Some int when int |> between 1920 2002 -> Some (BirthYear int)
             | _ -> None 
 
     type IssueYear = private IssueYear of int 
     let tryCreateIyr str : IssueYear option = 
         let year = parseInt str 
         match year with 
-            | Some int when int <= 2020 && int >= 2010 -> Some (IssueYear int)
+            | Some int when int |> between 2010 2020 -> Some (IssueYear int)
             | _ -> None 
 
     type ExpirationYear = private ExpirationYear of int 
     let tryCreateEyr str : ExpirationYear option = 
         let year = parseInt str 
         match year with 
-            | Some int when int <= 2030 && int >= 2020 -> Some (ExpirationYear int)
+            | Some int when int |> between 2020 2030 -> Some (ExpirationYear int)
             | _ -> None 
     
     let inchesRegex = Regex "^([0-9]{2})in$"
@@ -42,7 +44,6 @@ module PassportData =
        let m = cmRegex.Match(input) 
        if (m.Success) then Some (int m.Groups.[1].Value) else None  
     
-    let between min max value = value >= min && value <= max 
 
     type Height = private Inches of int | Cm of int
     let tryCreateHgt (str: string) : Height option = 
@@ -52,6 +53,7 @@ module PassportData =
             | IN inches -> if inches |> between 59 76 then Some (Inches inches)
                            else None
             | _ -> None
+
     let private hairRegex = Regex "^#[a-zA-Z0-9]{6}$"
     type Haircolor = private Haircolor of string
     let tryCreateHcl (str: string) : Haircolor option = 
