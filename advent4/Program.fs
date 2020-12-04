@@ -113,6 +113,7 @@ let main argv =
 
     let createPassport (p: IDictionary<string,string>) =
         if passPortHasKeys p then 
+            let birthYear = PassportData.tryCreateByr p.["byr"]
             let issueYear = PassportData.tryCreateIyr p.["iyr"]
             let expiratoinYear = PassportData.tryCreateEyr p.["eyr"]
             let height = PassportData.tryCreateHgt p.["hgt"]
