@@ -129,17 +129,16 @@ let main argv =
         else 
             None
 
-    let validpassPorts= lines |> List.map (fun s -> s.Split([|" "|], StringSplitOptions.RemoveEmptyEntries)) 
-                              |> List.map (fun s -> s |> createPassPortDictionary) 
-                              |> List.filter (fun p -> passPortHasKeys p)
-                              |> List.length
-    printfn "%i" validpassPorts 
+    let createPassports (s: string) = s.Split([|" "|], StringSplitOptions.RemoveEmptyEntries) 
+                                      |> createPassPortDictionary
 
-    let validpassPorts= lines |> List.map (fun s -> s.Split([|" "|], StringSplitOptions.RemoveEmptyEntries)) 
-                              |> List.map (fun s -> s |> createPassPortDictionary) 
-                              |> List.map (fun s -> s |> createPassport) 
-                              |> List.choose id
-                              |> List.length
+    lines |> List.map createPassports
+          |> List.filter passPortHasKeys
+          |> List.length
+          |> printfn "%i"
 
-    printfn "%A" validpassPorts 
+    (List.map (createPassports >> (fun s -> s |> createPassport)) lines) 
+        |> List.choose id
+        |> List.length
+        |> printfn "%A"
     0
