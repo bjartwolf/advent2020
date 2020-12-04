@@ -11,8 +11,6 @@ module TryParser =
 
     let parseInt    = tryParseWith System.Int32.TryParse
 
-    let (|Int|_|)    = parseInt
-
 module PassportData =
     open TryParser
 
