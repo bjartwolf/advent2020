@@ -5,9 +5,10 @@ open System.Collections.Generic
 open System.Text.RegularExpressions
 
 module PassportData =
-    let parseInt (i:string) = match System.Int32.TryParse i with 
-                                | true, v -> Some v
-                                | false, _ -> None
+    let private parseInt (i:string) = 
+        match System.Int32.TryParse i with 
+            | true, v -> Some v
+            | false, _ -> None
 
     type BirthYear = private BirthYear of int 
     let tryCreateByr str : BirthYear option = 
@@ -47,7 +48,7 @@ module PassportData =
         else 
             None 
             
-    let hairRegex = Regex "^#[a-zA-Z0-9]{6}$"
+    let private hairRegex = Regex "^#[a-zA-Z0-9]{6}$"
     type Haircolor = private Haircolor of string
     let tryCreateHcl (str: string) : Haircolor option = 
         if (hairRegex.IsMatch(str)) then
@@ -56,7 +57,7 @@ module PassportData =
             None 
 
     type EyeColor = private EyeColor of string
-    let eyeRegex = Regex "^(amb|blu|brn|gry|grn|hzl|oth)$"
+    let private eyeRegex = Regex "^(amb|blu|brn|gry|grn|hzl|oth)$"
     let tryCreateEcl (str: string) : EyeColor option = 
         if (eyeRegex.IsMatch(str)) then
             Some (EyeColor str)
@@ -64,7 +65,7 @@ module PassportData =
             None 
 
     type PassportId = private PassportId of string
-    let passportRegex = Regex "^[0-9]{9}$"
+    let private passportRegex = Regex "^[0-9]{9}$"
     let tryCreatePasportId (str: string) : PassportId option = 
         if (passportRegex.IsMatch(str)) then
             Some (PassportId str)
