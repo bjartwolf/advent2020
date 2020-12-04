@@ -30,24 +30,28 @@ module PassportData =
         match year with 
             | Some int when int <= 2030 && int >= 2020 -> Some (ExpirationYear int)
             | _ -> None 
+    
+    let inchesRegex = Regex "^([0-9]{2})in$"
+    let cmRegex = Regex "^([0-9]{3})cm$"
+
+    let (|IN |_|) input =
+       let m = inchesRegex.Match(input) 
+       if (m.Success) then Some (int m.Groups.[1].Value) else None  
+
+    let (|CM|_|) input =
+       let m = cmRegex.Match(input) 
+       if (m.Success) then Some (int m.Groups.[1].Value) else None  
+    
+    let between min max value = value >= min && value <= max 
 
     type Height = private Inches of int | Cm of int
     let tryCreateHgt (str: string) : Height option = 
-        if (str.EndsWith("cm")) then
-            let stripCm = str.Replace("cm", "") 
-            let cm = parseInt stripCm 
-            match cm with 
-                | Some int when int <= 193 && int >= 150 -> Some (Cm int)
-                | _ -> None 
-        else if (str.EndsWith("in")) then
-            let stripIn = str.Replace("in", "") 
-            let inches = parseInt stripIn 
-            match inches with 
-                | Some int when int <= 76 && int >= 59 -> Some (Inches int)
-                | _ -> None 
-        else 
-            None 
-            
+        match str with 
+            | CM cm -> if cm |> between 150 193 then Some (Cm cm)
+                              else None
+            | IN inches -> if inches |> between 59 76 then Some (Inches inches)
+                           else None
+            | _ -> None
     let private hairRegex = Regex "^#[a-zA-Z0-9]{6}$"
     type Haircolor = private Haircolor of string
     let tryCreateHcl (str: string) : Haircolor option = 
@@ -99,12 +103,9 @@ let main argv =
     
     let passPortHasKeys (p: IDictionary<string,string>) = 
         let keys = p.Keys
-        keys.Contains("byr") && 
-        keys.Contains("iyr") && 
-        keys.Contains("eyr") && 
-        keys.Contains("hgt") && 
-        keys.Contains("hcl") && 
-        keys.Contains("ecl") && 
+        keys.Contains("byr") && keys.Contains("iyr") && 
+        keys.Contains("eyr") && keys.Contains("hgt") && 
+        keys.Contains("hcl") && keys.Contains("ecl") && 
         keys.Contains("pid")
 
     let createPassport (p: IDictionary<string,string>) =
@@ -125,15 +126,17 @@ let main argv =
         else 
             None
 
-    let createPassports (s: string) = s.Split([|" "|], StringSplitOptions.RemoveEmptyEntries) 
-                                      |> createPassPortDictionary
+    let createPassportDictionaries (s: string) = s.Split([|" "|], StringSplitOptions.RemoveEmptyEntries) 
+                                                  |> createPassPortDictionary
 
-    lines |> List.map createPassports
-          |> List.filter passPortHasKeys
-          |> List.length
-          |> printfn "%i"
+    let passportsWithAllKeys = lines |> List.map createPassportDictionaries
+                                     |> List.filter passPortHasKeys
 
-    (List.map (createPassports >> (fun s -> s |> createPassport)) lines) 
+    passportsWithAllKeys |> List.length
+                         |> printfn "%i"
+
+    passportsWithAllKeys
+        |> List.map createPassport
         |> List.choose id
         |> List.length
         |> printfn "%A"
