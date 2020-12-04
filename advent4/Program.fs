@@ -47,26 +47,26 @@ module PassportData =
         else 
             None 
             
+    let hairRegex = Regex "^#[a-zA-Z0-9]{6}$"
     type Haircolor = private Haircolor of string
     let tryCreateHcl (str: string) : Haircolor option = 
-        let regex = Regex "^#[a-zA-Z0-9]{6}$"
-        if (regex.IsMatch(str)) then
+        if (hairRegex.IsMatch(str)) then
             Some (Haircolor str)
         else 
             None 
 
     type EyeColor = private EyeColor of string
+    let eyeRegex = Regex "^(amb|blu|brn|gry|grn|hzl|oth)$"
     let tryCreateEcl (str: string) : EyeColor option = 
-        let regex = Regex "^(amb|blu|brn|gry|grn|hzl|oth)$"
-        if (regex.IsMatch(str)) then
+        if (eyeRegex.IsMatch(str)) then
             Some (EyeColor str)
         else 
             None 
 
     type PassportId = private PassportId of string
+    let passportRegex = Regex "^[0-9]{9}$"
     let tryCreatePasportId (str: string) : PassportId option = 
-        let regex = Regex "^[0-9]{9}$"
-        if (regex.IsMatch(str)) then
+        if (passportRegex.IsMatch(str)) then
             Some (PassportId str)
         else 
             None 
