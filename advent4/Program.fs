@@ -5,11 +5,9 @@ open System.Collections.Generic
 open System.Text.RegularExpressions
 
 module TryParser = 
-    let tryParseWith (tryParseFunc: string -> bool * _) = tryParseFunc >> function
-        | true, v    -> Some v
-        | false, _   -> None
-
-    let parseInt    = tryParseWith System.Int32.TryParse
+    let parseInt (i:string) = match System.Int32.TryParse i with 
+                                | true, v -> Some v
+                                | false, _ -> None
 
 module PassportData =
     open TryParser
