@@ -35,7 +35,8 @@ let main argv =
 
     let rec findSeat seats = 
         match seats with
-            | a :: b :: c :: _ when not (a + 1 = b && b + 1 = c) -> b + 1 
+            | a :: b :: c :: _ when not (a + 1 = b && b + 1 = c) -> printf "%A" (a,b,c)
+                                                                    b + 1 
             | _ :: b :: c :: rest -> findSeat (b :: c :: rest)
             | _ -> -1 
 
