@@ -77,9 +77,13 @@ namespace Seatid
 
         private uint GetSeatid(ReadOnlySequence<byte> buffer) {
             uint sum = 0;
+            var i = 0;
+            var length = 0;
+
             foreach (var segment in buffer) {
-                var i = 0;
-                var length = segment.Length;
+                length += segment.Length; 
+            }
+            foreach (var segment in buffer) {
                 foreach (var element in segment.Span) {
                     uint a = 0b_0000_0100;
                     sum += ((element & a) ^a) >> 2 << length - i -1;
