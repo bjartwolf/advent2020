@@ -1,7 +1,5 @@
 using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading.Tasks;
@@ -10,15 +8,13 @@ namespace Seatid
 {
     public class SeatidStream
     {
-        private string _ignorepattern;
         private Stream _outStream;
         private Stream _inStream;
         private PipeReader _reader;
         private PipeWriter _writer;
 
-        public SeatidStream(Stream inputStream, Stream outputStream, string ignorepattern = "DSFSADFDSAFASDFSDA")
+        public SeatidStream(Stream inputStream, Stream outputStream)
         {
-            _ignorepattern = ignorepattern;
             var readerOpts = new StreamPipeReaderOptions(); 
             _reader = PipeReader.Create(inputStream, readerOpts);
             var writerOptions = new StreamPipeWriterOptions(leaveOpen: true);
