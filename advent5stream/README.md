@@ -8,3 +8,5 @@ then just moves things according too that and the position in the buffer... It o
  cat input5.txt | bin/Debug/net5.0/advent5stream | sort -rn | head -n 1
  cat input5.txt | bin/Debug/net5.0/advent5stream | sort -n | awk '{for(i=p+1; i<$1; i++) print i} {p=$1}' | sort -rn | head -n 1
 ```
+
+!(bitshift doc)[https://user-images.githubusercontent.com/1174441/101262463-3c5b0f00-373f-11eb-9ece-42f9ee7a1a66.png]
