@@ -26,10 +26,19 @@ let main argv =
                    |> Seq.map (parseSeat)
 
     seats |> Seq.max 
-          |> printf "The max value is %i" 
+          |> printf "The max value is %i \n" 
 
-    seats |> Seq.sort
-          |> printf "%A" 
+    let sortedSeats = 
+        seats
+          |> Seq.sort
+          |> Seq.toList
 
+    let rec findSeat seats = 
+        match seats with
+            | a :: b :: c :: _ when not (a + 1 = b && b + 1 = c) -> b + 1 
+            | _ :: b :: c :: rest -> findSeat (b :: c :: rest)
+            | _ -> -1 
+
+    findSeat sortedSeats |> printf "My seat is %d \n" 
 
     0
