@@ -22,8 +22,14 @@ let main argv =
     assert ((parseSeat "FBFBBFFRLR") = 357)
     //
 
-    System.IO.File.ReadAllLines("input5.txt") 
-        |> Seq.map (parseSeat)
-        |> Seq.max 
-        |> printf "The max value is %i" 
+    let seats = System.IO.File.ReadAllLines("input5.txt") 
+                   |> Seq.map (parseSeat)
+
+    seats |> Seq.max 
+          |> printf "The max value is %i" 
+
+    seats |> Seq.sort
+          |> printf "%A" 
+
+
     0
