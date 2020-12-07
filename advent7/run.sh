@@ -3,10 +3,8 @@ function findbags
 	set bag $argv
 	set regex $bag' bags\?[.,]'
 	set contained_bags (cat input7.txt | grep $regex | sed 's/ bags.*//g')
-	for currentBag in $contained_bags
-		echo $currentBag
-	end
 	for contained_bag in $contained_bags
+		echo $contained_bag
 		findbags $contained_bag
 	end
 end
