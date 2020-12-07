@@ -7,6 +7,3 @@ function findbags
 end
 
 echo 'Sum is '(findbags "shiny gold" | sort | uniq | wc -l)
-
-
-
