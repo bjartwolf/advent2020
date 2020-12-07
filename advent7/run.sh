@@ -1,11 +1,9 @@
 #!/usr/bin/env fish
 function findbags 
-	set regex $argv' bags\?[.,]'
-	set contained_bags (cat input7.txt | grep $regex | sed 's/ bags.*//g')
-	for contained_bag in $contained_bags
-		echo $contained_bag
-		findbags $contained_bag
-	end
+  for contained_bag in (cat input7.txt | grep $argv' bags\?[.,]'| sed 's/ bags.*//g')
+    echo $contained_bag
+    findbags $contained_bag
+  end
 end
 
 echo 'Sum is '(findbags "shiny gold" | sort | uniq | wc -l)
