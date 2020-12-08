@@ -58,6 +58,7 @@ let ``Fixed input does terminate "normally"`` () =
     let result = evaluateProgram program
     Assert.True(isCompleted program result)
     Assert.Equal(programTxt.Length - 1, List.head result.Visited)
+    Assert.Equal(797, result.Acc)
 
 [<Fact>]
 let ``Hack input until it terminates "normally"`` () =
