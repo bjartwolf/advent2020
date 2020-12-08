@@ -39,6 +39,16 @@ let evaluateProgram (program: Program) : State =
     state 
 
 [<Fact>]
+let ``Evaluate 1 jump 0 step automatically`` () =
+    let program = [Jmp 0] 
+    let result = evaluateProgram program
+    Assert.Equal({ PC = -1;
+                   Acc = 0;
+                   Visited = [0] } , result)
+    Assert.True(isCompleted program result)
+
+
+[<Fact>]
 let ``Evaluate 1 nop step automatically`` () =
     let program = [Nop] 
     let result = evaluateProgram program
