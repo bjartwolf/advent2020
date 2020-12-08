@@ -31,6 +31,24 @@ let evaluate (program: Program) (state: State) : State =
         
     { res with Visited = pc :: state.Visited }
 
+let evaluateProgram (program: Program) : State =
+    let mutable state = initState // yeah, I know
+    let programEvaluator = evaluate program
+    while (not (isCompleted program state)) do 
+        state <- programEvaluator state
+    state 
+
+[<Fact>]
+let ``Evaluate 1 nop step automatically`` () =
+    let program = [Nop] 
+    let result = evaluateProgram program
+    Assert.Equal({ PC = 0;
+                   Acc = 0;
+                   Visited = [0] } , result)
+
+    Assert.True(isCompleted program result)
+
+
 [<Fact>]
 let ``Evaluate 1 acc and 1 jump steps`` () =
     let program = [Acc 2; Jmp 2; Acc 4; Acc 13] 
