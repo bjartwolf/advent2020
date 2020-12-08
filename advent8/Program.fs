@@ -11,6 +11,7 @@ let ``Test data completes in order`` () =
     Assert.True(isCompleted program result)
     Assert.StrictEqual( [8;7;6;2;1;0], result.Visited)
     Assert.Equal(8, result.Acc)
+    Assert.Equal(programTxt.Length - 1, List.head result.Visited)
 
 [<Fact>]
 let ``Test data with jmp0 completes`` () =
@@ -22,7 +23,6 @@ let ``Test data with jmp0 completes`` () =
     Assert.StrictEqual( [0], result.Visited)
     Assert.Equal(0, result.Acc)
 
-
 [<Fact>]
 let ``Test data completes`` () =
     let programTxt = readInputfile "data/example.txt" 
@@ -32,6 +32,15 @@ let ``Test data completes`` () =
     Assert.True(isCompleted program result)
     Assert.StrictEqual( [4;3;7;6;2;1;0], result.Visited)
     Assert.Equal(5, result.Acc)
+
+[<Fact>]
+let ``Code first part as test`` () =
+    let programTxt = readInputfile "data/input.txt" 
+    let program = parseLines programTxt
+
+    let result = evaluateProgram program
+    Assert.True(isCompleted program result)
+    Assert.Equal(1782, result.Acc)
 
 [<EntryPoint>]
 let main argv =
