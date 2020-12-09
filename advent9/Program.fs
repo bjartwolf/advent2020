@@ -37,6 +37,38 @@ let ``is valid until 127`` () =
 
     Assert.Equal(127L, firstFailure)
 
+let findEncryptionWeakness (answer:int64) (numbers: int64 list) = 
+    let answer = answer 
+    let mutable a = 0L
+    let mutable b = 0L
+    for i in seq { 0 .. numbers.Length } do 
+        for j in seq { 0 .. numbers.Length } do 
+            if j + i < (numbers.Length) then 
+                let sum = List.skip i numbers |> List.take j |> List.sum
+                if sum = answer then
+                   let found = List.skip i numbers |> List.take j
+                   if (a = 0L) then
+                       a <- List.max found
+                       b <- List.min found
+    a+b
+
+
+[<Fact>]
+let ``find encryption weakness for 1504371145L`` () =
+    let nums = System.IO.File.ReadAllLines("data/large_input.txt") 
+                                |> Array.map (int64) 
+                                |> Array.toList
+    Assert.Equal(183278487L, findEncryptionWeakness 1504371145L nums) 
+
+[<Fact>]
+let ``find encryption weakness for 127`` () =
+    let smallerNumberRange = System.IO.File.ReadAllLines("data/20_input.txt") 
+                                |> Array.map (int64) 
+                                |> Array.toList
+    Assert.Equal(62L, findEncryptionWeakness 127L smallerNumberRange) 
+
+
+
 [<Fact>]
 let ``is valid until 123337`` () =
     let smallerNumberRange = System.IO.File.ReadAllLines("data/large_input.txt") 
