@@ -3,10 +3,10 @@ open Xunit
 
 let validValues (inputSeq: int64 list) = 
     let valid = seq {
-            for value1 in inputSeq do
-                for value2 in inputSeq do
-                    if not (value1 = value2) then
-                        yield value1 + value2
+            for i in 0 .. inputSeq.Length - 1 do
+                for j in 0 .. inputSeq.Length - 1 do
+                    if i > j then 
+                        yield inputSeq.[i] + inputSeq.[j] 
             }
     valid |> Seq.toList
 
