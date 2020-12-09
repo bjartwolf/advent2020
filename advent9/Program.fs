@@ -30,9 +30,7 @@ let findEncryptionWeakness (answer:int64) (numbers: int64 list) =
             let answers = lists |> List.where (fun l -> (List.sum l) = answer) 
             if not (List.isEmpty answers) then
                let found = List.head answers
-               let a = List.max found
-               let b = List.min found
-               yield a+b 
+               yield List.max found + List.min found
     } |> Seq.head
 
 [<Fact>]
