@@ -4,7 +4,7 @@ open FSharp.Collections.ParallelSeq
 let validValues (inputSeq: int64 list) = 
     let valid = seq {
             for i in 0 .. inputSeq.Length - 1 do
-                for j in 0 .. inputSeq.Length - 1 do
+                for j in 00 .. inputSeq.Length - 1 do
                     if i > j then 
                         yield inputSeq.[i] + inputSeq.[j] 
             }
@@ -18,10 +18,10 @@ let addIfValid (newValue: int64) (sequence: int64 list ) : AddResult =
     else 
         Failure
 
-let rec takeUntilFailure (preamble: int64 list) (sequence: int64 seq) : int64 =
+let rec takeUntilFailure (preamble: int64 list) (sequence: int64 list) : int64 =
     let res = addIfValid (Seq.head sequence) preamble 
     match res with 
-        | Success lst -> takeUntilFailure lst (Seq.skip 1 sequence)
+        | Success lst -> takeUntilFailure lst (List.skip 1 sequence)
         | Failure -> Seq.head sequence
 
 let findEncryptionWeakness (answer:int64) (numbers: int64 list) = 
