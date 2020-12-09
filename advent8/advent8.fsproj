@@ -6,6 +6,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Domain.fs" />
+    <Compile Include="Parser.fs" />
+    <Content Include="data\inputFixed.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\modifiedExampleInOrder.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\exampleWithJmp0.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="data\example.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
