@@ -41,15 +41,13 @@ let findEncryptionWeakness (answer:int64) (numbers: int64 list) =
     let answer = answer 
     let mutable a = 0L
     let mutable b = 0L
-    for i in seq { 0 .. numbers.Length } do 
-        for j in seq { 0 .. numbers.Length } do 
-            if j + i < (numbers.Length) then 
-                let sum = List.skip i numbers |> List.take j |> List.sum
-                if sum = answer then
-                   let found = List.skip i numbers |> List.take j
-                   if (a = 0L) then
-                       a <- List.max found
-                       b <- List.min found
+    for i in seq { 2 .. numbers.Length } do 
+            let lists = List.windowed i numbers
+            let answers = lists |> List.where (fun l -> (List.sum l) = answer) 
+            if not (List.isEmpty answers) && (a = 0L) then
+                let found = List.head answers
+                a <- List.max found
+                b <- List.min found
     a+b
 
 
