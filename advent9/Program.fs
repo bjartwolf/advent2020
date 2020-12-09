@@ -1,5 +1,4 @@
-﻿open System
-open Xunit
+﻿open Xunit
 
 let validValues (inputSeq: int64 list) = 
     let valid = seq {
@@ -9,8 +8,6 @@ let validValues (inputSeq: int64 list) =
                         yield inputSeq.[i] + inputSeq.[j] 
             }
     valid |> Seq.toList
-
-let oneTo25Seq = seq { 1L.. 25L } |> Seq.toList
 
 type AddResult = Success of int64 list | Failure 
 
@@ -26,6 +23,18 @@ let rec takeUntilFailure (preamble: int64 list) (sequence: int64 list) : int64 =
         | Success lst -> takeUntilFailure lst (List.tail sequence)
         | Failure -> List.head sequence
 
+let findEncryptionWeakness (answer:int64) (numbers: int64 list) = 
+    seq {
+        for i in seq { 2 .. numbers.Length } do 
+            let lists = List.windowed i numbers
+            let answers = lists |> List.where (fun l -> (List.sum l) = answer) 
+            if not (List.isEmpty answers) then
+               let found = List.head answers
+               let a = List.max found
+               let b = List.min found
+               yield a+b 
+    } |> Seq.head
+
 [<Fact>]
 let ``is valid until 127`` () =
     let smallerNumberRange = System.IO.File.ReadAllLines("data/20_input.txt") 
@@ -37,20 +46,7 @@ let ``is valid until 127`` () =
 
     Assert.Equal(127L, firstFailure)
 
-let findEncryptionWeakness (answer:int64) (numbers: int64 list) = 
-    let answers = seq {
-        for i in seq { 2 .. numbers.Length } do 
-            let lists = List.windowed i numbers
-            let answers = lists |> List.where (fun l -> (List.sum l) = answer) 
-            if not (List.isEmpty answers) then
-               let found = List.head answers
-               let a = List.max found
-               let b = List.min found
-               yield (a,b)
-    } 
-    let (a,b) = answers |> Seq.head
-    a+b
-
+let oneTo25Seq = seq { 1L.. 25L } |> Seq.toList
 
 [<Fact>]
 let ``find encryption weakness for 1504371145L`` () =
@@ -66,8 +62,6 @@ let ``find encryption weakness for 127`` () =
                                 |> Array.toList
     Assert.Equal(62L, findEncryptionWeakness 127L smallerNumberRange) 
 
-
-
 [<Fact>]
 let ``is valid until 123337`` () =
     let smallerNumberRange = System.IO.File.ReadAllLines("data/large_input.txt") 
@@ -79,8 +73,6 @@ let ``is valid until 123337`` () =
     let firstFailure = takeUntilFailure preamble sequence
 
     Assert.Equal(1504371145L, firstFailure)
-
-
 
 [<Fact>]
 let ``can add 26`` () =
