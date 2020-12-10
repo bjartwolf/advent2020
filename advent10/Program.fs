@@ -30,6 +30,29 @@ let pick (adapters: int list) (nextAdapters: int list) : int =
 
 let testdata = System.IO.File.ReadAllLines "data/foo.txt" |> Array.map (int) |> Array.toList
 
+let findDifferences (input: int list) (difference: int) = 
+// could assert on sort
+    input |> Seq.pairwise |> Seq.where (fun (a,b) -> b - a = difference) |> Seq.toList |> List.length 
+
+[<Fact>]
+let ``inputss`` () = 
+    let list = [1;2;3]
+    Assert.Equal(2, findDifferences list 1)
+
+    let list = [1;2;3;4]
+    Assert.Equal(3, findDifferences list 1)
+
+    let list = [1;2;3;4;7;9]
+    Assert.Equal(3, findDifferences list 1)
+    Assert.Equal(1, findDifferences list 2)
+    Assert.Equal(1, findDifferences list 3)
+
+    let list = [1;2;3;4;7;8;9]
+    Assert.Equal(5, findDifferences list 1)
+
+    let list = [1;3;5;7]
+    Assert.Equal(3, findDifferences list 2)
+
 [<Fact>]
 let ``testdata adapters only 4 can connect to 1`` () = 
     let firstConnectors = findConnectors testdata chargingOutlet 
@@ -92,6 +115,24 @@ let ``testdata adapters only 4 can connect to 1`` () =
     let eleven = pick elevens testdata
     Assert.Equal(-1, eleven)
     Assert.Equal(22, rating elevens)
+    let connectors = [chargingOutlet
+                      firstConnector; 
+                      secondConnector;
+                      thirdConnector;
+                      fourthConnector;
+                      fifthConnector;
+                      sixthConnector;
+                      sevenConnector;
+                      eigthConnector;
+                      nine;
+                      ten;
+                      List.head elevens;
+                      rating elevens]
+    let ones = findDifferences connectors 1
+    let twos = findDifferences connectors 2
+    let threes = findDifferences connectors 3
+    Assert.Equal(7, ones)
+    Assert.Equal(5, threes)
 
 [<Fact>]
 let ``testdata adaptes rates to 22`` () = 
