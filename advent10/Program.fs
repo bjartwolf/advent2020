@@ -92,103 +92,12 @@ let product (inputFile: string) : int =
 [<Fact>]
 let ``visitLongerTestfileProduct`` () = 
     Assert.Equal(220, product "data/LongerTest.txt")
-    
-[<Fact>]
-let ``testdata adapters only 4 can connect to 1`` () = 
-    let firstConnectors = findConnectors testdata chargingOutlet 
-    let firstConnector = pick firstConnectors testdata
-    Assert.Equal(1, firstConnector) 
-
-    let secondConnectors = findConnectors testdata firstConnector 
-    Assert.Contains(4, secondConnectors)
-    let secondConnector = pick secondConnectors testdata
-    Assert.Equal(4, secondConnector)
-
-    let thirdConnectors = findConnectors testdata secondConnector
-    Assert.Contains(5, thirdConnectors)
-    Assert.Contains(6, thirdConnectors)
-    Assert.Contains(7, thirdConnectors)
-    let thirdConnector = pick thirdConnectors testdata
-    Assert.Equal(5, thirdConnector) 
-
-    let fourthConnectors = findConnectors testdata thirdConnector 
-    Assert.Contains(6, fourthConnectors)
-    Assert.Contains(7, fourthConnectors)
-    let fourthConnector = pick fourthConnectors testdata
-    Assert.Equal(6, fourthConnector) 
-
-    let fifthConnectors = findConnectors testdata fourthConnector 
-    Assert.Contains(7, fifthConnectors)
-    let fifthConnector = pick fifthConnectors testdata
-    Assert.Equal(7, fifthConnector) 
-
-    let sixthConnectors = findConnectors testdata fifthConnector 
-    Assert.Contains(10, sixthConnectors)
-    Assert.Equal(1, sixthConnectors.Length)
-    let sixthConnector = pick sixthConnectors testdata
-    Assert.Equal(10, sixthConnector) 
-
-    let seventhConnectors = findConnectors testdata sixthConnector 
-    Assert.Contains(11, seventhConnectors)
-    Assert.Contains(12, seventhConnectors)
-    Assert.Equal(2, seventhConnectors.Length)
-    let sevenConnector = pick seventhConnectors testdata
-    Assert.Equal(11, sevenConnector)
-
-    let eigthConnectors = findConnectors testdata sevenConnector 
-    Assert.Contains(12, eigthConnectors) 
-    let eigthConnector = pick eigthConnectors testdata
-    Assert.Equal(12, eigthConnector)
-
-    let nines = findConnectors testdata eigthConnector 
-    Assert.Contains(15, nines) 
-    let nine = pick nines testdata
-    Assert.Equal(15, nine)
-
-    let tens = findConnectors testdata nine 
-    Assert.Contains(16, tens) 
-    let ten = pick tens testdata
-    Assert.Equal(16, ten)
-
-    let elevens = findConnectors testdata ten 
-    Assert.Contains(19, elevens) 
-    let eleven = pick elevens testdata
-    Assert.Equal(-1, eleven)
-    Assert.Equal(22, rating elevens)
-    let connectors = [chargingOutlet
-                      firstConnector; 
-                      secondConnector;
-                      thirdConnector;
-                      fourthConnector;
-                      fifthConnector;
-                      sixthConnector;
-                      sevenConnector;
-                      eigthConnector;
-                      nine;
-                      ten;
-                      List.head elevens;
-                      rating elevens]
-    let ones = findDifferences connectors 1
-    let threes = findDifferences connectors 3
-    Assert.Equal(7, ones)
-    Assert.Equal(5, threes)
 
 [<Fact>]
-let ``testdata adaptes rates to 22`` () = 
-    Assert.Equal(22, rating testdata)
-
-[<Fact>]
-let ``3 6 and 9 rates adapter to 12`` () = 
-    let adapters = [3;6;9] 
-    Assert.Equal(12, rating adapters)
-    Assert.True(fits 9 12)
-    Assert.True(fits 8 11)
-    Assert.False(fits 8 12)
-    Assert.False(fits 12 12)
-    Assert.False(fits 14 12)
-    Assert.False(fits 1 12)
-
+let ``part1 is correct`` () = 
+    Assert.Equal(2775, product "data/input.txt")
+     
 [<EntryPoint>]
 let main argv =
-    printfn "Hello World from F#!"
+    printfn "Nr 1 is : %A" (product "data/input.txt")
     0 // return an integer exit code
