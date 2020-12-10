@@ -1,10 +1,6 @@
 ﻿open System
 open Xunit 
 
-// adapter can 1, 2, or 3 jolts lower than its rating and still produce its rated output joltage.
-// your device has a built-in joltage adapter rated for 3 jolts higher than the 
-//highest-rated adapter in your bag
-
 let rating (adapters: int list) =
    List.max adapters + 3 
 
@@ -17,8 +13,6 @@ let findConnectors (adapters: int list) (charger: int) =
     adapters |> List.where (fun a -> fits charger a)    
 
 let pick (adapters: int list) (nextAdapters: int list) : int =
-   // smallest one that fits in the nextadapters
-   // for each adapter must find the ones that can fit in one... exists one that fits
    let possibleNextAdapters = adapters |> List.map (fun a -> (a, findConnectors nextAdapters a))
    let possibleConnections = possibleNextAdapters 
                              |> List.where ( fun (_,conns) -> not (List.isEmpty conns))
@@ -28,16 +22,6 @@ let pick (adapters: int list) (nextAdapters: int list) : int =
    else 
        List.min possibleConnections 
        
-let pickAll (adapters: int list) (nextAdapters: int list) : int list option =
-   let possibleNextAdapters = adapters |> List.map (fun a -> (a, findConnectors nextAdapters a))
-   let possibleConnections = possibleNextAdapters 
-                             |> List.where ( fun (_,conns) -> not (List.isEmpty conns))
-                             |> List.map (fun (a, _) -> a)
-   if List.isEmpty possibleConnections then 
-      None 
-   else 
-      Some possibleConnections 
-
 let parseFile file = System.IO.File.ReadAllLines file |> Array.map (int) |> Array.toList
 
 let testdata = parseFile "data/foo.txt" 
@@ -56,25 +40,34 @@ let rec createVisitedSequence (visited: int list) (input: int list) (start: int)
     else 
         createVisitedSequence (start :: visited) input firstConnector
 
-let createVisitedSequenceforAll (input: int list) (start: int) : int =
-    let rec recFunc (nrsFound: int) (start:int) : int = 
-        let possibleConnectors = findConnectors input start 
-        match possibleConnectors with 
-            | [] -> nrsFound + 1
-            | [connection] -> nrsFound + (recFunc nrsFound connection)
-            | connections -> nrsFound + (connections |> List.sumBy (fun c -> recFunc nrsFound c) )
-    recFunc 0 start
+let rec arr (current : int ) (cache : int64 option array) : int64 =
+    if current >= Array.length cache then
+        0L
+    else
+        match cache.[current] with 
+        | Some c -> c
+        | None ->
+            let c = [1..3] |> List.sumBy (fun i -> arr (current + i) cache)
+            cache.[current] <- Some c
+            c
+
+let createVisitedSequenceforAll (input: int list) (start: int) (max: int): int64 =
+    let maxRating = rating input
+    let input' = chargingOutlet :: maxRating :: input |> List.sort
+    let foo = [| for i in 0 .. maxRating -> if List.contains i input' then None else Some 0L |]
+    foo.[maxRating] <- Some 1L 
+    arr 0 foo 
 
 let nrOfCombinations (data: int list) = 
     createVisitedSequenceforAll data chargingOutlet 
 
 [<Fact>]
 let ``visitAllInLongerTestfile`` () = 
-    Assert.Equal(19208, nrOfCombinations longerTestdata)
+    Assert.Equal(19208L, nrOfCombinations longerTestdata 52)
 
 [<Fact>]
 let ``visitAllInTestfile`` () = 
-    Assert.Equal(8, nrOfCombinations testdata)
+    Assert.Equal(8L, nrOfCombinations testdata 22)
 
 [<Fact>]
 let ``visitTestfile`` () = 
@@ -99,6 +92,10 @@ let product (inputFile: string) : int =
     ones * threes 
 
 [<Fact>]
+let ``visitLongerTestfileProductSmall`` () = 
+    Assert.Equal(35, product "data/foo.txt")
+
+[<Fact>]
 let ``visitLongerTestfileProduct`` () = 
     Assert.Equal(220, product "data/LongerTest.txt")
 
@@ -109,6 +106,6 @@ let ``part1 is correct`` () =
 [<EntryPoint>]
 let main argv =
     printfn "Nr 1 is : %A" (product "data/input.txt")
-    printfn "Nr 2 with testdata is : %A" (nrOfCombinations (parseFile "data/longerTest.txt"))
-    printfn "Nr 2 is : %A" (nrOfCombinations (parseFile "data/input.txt"))
+    printfn "Nr 2 latest with testdata is : %A" (nrOfCombinations (parseFile "data/longerTest.txt"))
+    printfn "Nr 2 is... : %A" (nrOfCombinations (parseFile "data/input.txt") 2775)
     0 // return an integer exit code
