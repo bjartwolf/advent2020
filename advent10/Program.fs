@@ -56,20 +56,17 @@ let rec createVisitedSequence (visited: int list) (input: int list) (start: int)
     else 
         createVisitedSequence (start :: visited) input firstConnector
 
-let rec createVisitedSequenceforAll (visited: int list) (input: int list) (start: int) : int list seq =
-    // starter med input legger på til -1... da henter man ratingen og legger til den og
-    let possibleConnectors = findConnectors input start 
-    seq {
-        if (possibleConnectors.IsEmpty) then
-                yield rating [start] :: visited 
-        else 
-            for connector in possibleConnectors do 
-                let sekvenser = createVisitedSequenceforAll (start :: visited) input connector  
-                yield! sekvenser 
-    }
+let createVisitedSequenceforAll (input: int list) (start: int) : int =
+    let rec recFunc (nrsFound: int) (start:int) : int = 
+        let possibleConnectors = findConnectors input start 
+        match possibleConnectors with 
+            | [] -> nrsFound + 1
+            | [connection] -> nrsFound + (recFunc nrsFound connection)
+            | connections -> nrsFound + (connections |> List.sumBy (fun c -> recFunc nrsFound c) )
+    recFunc 0 start
 
 let nrOfCombinations (data: int list) = 
-    createVisitedSequenceforAll [] data chargingOutlet |> Seq.toList |> List.length
+    createVisitedSequenceforAll data chargingOutlet 
 
 [<Fact>]
 let ``visitAllInLongerTestfile`` () = 
@@ -112,5 +109,6 @@ let ``part1 is correct`` () =
 [<EntryPoint>]
 let main argv =
     printfn "Nr 1 is : %A" (product "data/input.txt")
+    printfn "Nr 2 with testdata is : %A" (nrOfCombinations (parseFile "data/longerTest.txt"))
     printfn "Nr 2 is : %A" (nrOfCombinations (parseFile "data/input.txt"))
     0 // return an integer exit code
