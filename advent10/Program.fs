@@ -68,17 +68,16 @@ let rec createVisitedSequenceforAll (visited: int list) (input: int list) (start
                 yield! sekvenser 
     }
 
+let nrOfCombinations (data: int list) = 
+    createVisitedSequenceforAll [] data chargingOutlet |> Seq.toList |> List.length
 
 [<Fact>]
 let ``visitAllInLongerTestfile`` () = 
-    let allways = createVisitedSequenceforAll [] longerTestdata chargingOutlet //connectorEnd
-    let sum = allways |> Seq.toList |> List.length
-    Assert.Equal(19208, sum)
+    Assert.Equal(19208, nrOfCombinations longerTestdata)
 
 [<Fact>]
 let ``visitAllInTestfile`` () = 
-    let allways = createVisitedSequenceforAll [] testdata chargingOutlet
-    Assert.Equal(8, allways |> Seq.toList |> List.length)
+    Assert.Equal(8, nrOfCombinations testdata)
 
 [<Fact>]
 let ``visitTestfile`` () = 
@@ -113,4 +112,5 @@ let ``part1 is correct`` () =
 [<EntryPoint>]
 let main argv =
     printfn "Nr 1 is : %A" (product "data/input.txt")
+    printfn "Nr 2 is : %A" (nrOfCombinations (parseFile "data/input.txt"))
     0 // return an integer exit code
