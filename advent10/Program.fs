@@ -28,7 +28,10 @@ let pick (adapters: int list) (nextAdapters: int list) : int =
    else 
        List.min possibleConnections 
 
-let testdata = System.IO.File.ReadAllLines "data/foo.txt" |> Array.map (int) |> Array.toList
+let parseFile file = System.IO.File.ReadAllLines file |> Array.map (int) |> Array.toList
+
+let testdata = parseFile "data/foo.txt" 
+let longerTestdata = parseFile "data/longerTest.txt" 
 
 let findDifferences (input: int list) (difference: int) = 
     input |> Seq.sort |> Seq.pairwise |> Seq.where (fun (a,b) -> b - a = difference) |> Seq.toList |> List.length 
@@ -72,7 +75,24 @@ let ``visitTestfile`` () =
     Assert.Equal(7, ones)
     Assert.Equal(5, threes)
 
+[<Fact>]
+let ``visitLongerTestfile`` () = 
+    let connectors = createVisitedSequence [] longerTestdata chargingOutlet
+    let ones = findDifferences connectors 1
+    let threes = findDifferences connectors 3
+    Assert.Equal(22, ones)
+    Assert.Equal(10, threes)
 
+let product (inputFile: string) : int =
+    let connectors = createVisitedSequence [] (parseFile inputFile) chargingOutlet
+    let ones = findDifferences connectors 1
+    let threes = findDifferences connectors 3
+    ones * threes 
+
+[<Fact>]
+let ``visitLongerTestfileProduct`` () = 
+    Assert.Equal(220, product "data/LongerTest.txt")
+    
 [<Fact>]
 let ``testdata adapters only 4 can connect to 1`` () = 
     let firstConnectors = findConnectors testdata chargingOutlet 
