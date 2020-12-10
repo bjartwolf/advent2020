@@ -27,6 +27,16 @@ let pick (adapters: int list) (nextAdapters: int list) : int =
        -1
    else 
        List.min possibleConnections 
+       
+let pickAll (adapters: int list) (nextAdapters: int list) : int list option =
+   let possibleNextAdapters = adapters |> List.map (fun a -> (a, findConnectors nextAdapters a))
+   let possibleConnections = possibleNextAdapters 
+                             |> List.where ( fun (_,conns) -> not (List.isEmpty conns))
+                             |> List.map (fun (a, _) -> a)
+   if List.isEmpty possibleConnections then 
+      None 
+   else 
+      Some possibleConnections 
 
 let parseFile file = System.IO.File.ReadAllLines file |> Array.map (int) |> Array.toList
 
@@ -36,36 +46,39 @@ let longerTestdata = parseFile "data/longerTest.txt"
 let findDifferences (input: int list) (difference: int) = 
     input |> Seq.sort |> Seq.pairwise |> Seq.where (fun (a,b) -> b - a = difference) |> Seq.toList |> List.length 
 
-[<Fact>]
-let ``inputss`` () = 
-    let list = [1;2;3]
-    Assert.Equal(2, findDifferences list 1)
-
-    let list = [1;2;3;4]
-    Assert.Equal(3, findDifferences list 1)
-
-    let list = [1;2;3;4;7;9]
-    Assert.Equal(3, findDifferences list 1)
-    Assert.Equal(1, findDifferences list 2)
-    Assert.Equal(1, findDifferences list 3)
-
-    let list = [1;2;3;4;7;8;9]
-    Assert.Equal(5, findDifferences list 1)
-
-    let list = [1;3;5;7]
-    Assert.Equal(3, findDifferences list 2)
-
 let rec createVisitedSequence (visited: int list) (input: int list) (start: int) : int list =
-    // starter med input
-    // legger på til -1... da henter man ratingen og legger til den og
+    // starter med input legger på til -1... da henter man ratingen og legger til den og
     let possibleConnectors = findConnectors input start 
     let firstConnector = pick possibleConnectors input 
-    if firstConnector = -1 then  
-        // little sort of bug where it should probably have returned 19
+    if firstConnector = -1 then  // little sort of bug where it should probably have returned 19
         let connectTo = possibleConnectors |> List.head
         rating [connectTo ]:: connectTo :: start :: visited 
     else 
         createVisitedSequence (start :: visited) input firstConnector
+
+let rec createVisitedSequenceforAll (visited: int list) (input: int list) (start: int) : int list seq =
+    // starter med input legger på til -1... da henter man ratingen og legger til den og
+    let possibleConnectors = findConnectors input start 
+    seq {
+        if (possibleConnectors.IsEmpty) then
+                yield rating [start] :: visited 
+        else 
+            for connector in possibleConnectors do 
+                let sekvenser = createVisitedSequenceforAll (start :: visited) input connector  
+                yield! sekvenser 
+    }
+
+
+[<Fact>]
+let ``visitAllInLongerTestfile`` () = 
+    let allways = createVisitedSequenceforAll [] longerTestdata chargingOutlet //connectorEnd
+    let sum = allways |> Seq.toList |> List.length
+    Assert.Equal(19208, sum)
+
+[<Fact>]
+let ``visitAllInTestfile`` () = 
+    let allways = createVisitedSequenceforAll [] testdata chargingOutlet
+    Assert.Equal(8, allways |> Seq.toList |> List.length)
 
 [<Fact>]
 let ``visitTestfile`` () = 
