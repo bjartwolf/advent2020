@@ -1,4 +1,5 @@
 ﻿open System
+open System.Collections.Generic
 open Xunit 
 
 // adapter can 1, 2, or 3 jolts lower than its rating and still produce its rated output joltage.
@@ -56,25 +57,37 @@ let rec createVisitedSequence (visited: int list) (input: int list) (start: int)
     else 
         createVisitedSequence (start :: visited) input firstConnector
 
-let createVisitedSequenceforAll (input: int list) (start: int) : int =
-    let rec recFunc (nrsFound: int) (start:int) : int = 
-        let possibleConnectors = findConnectors input start 
-        match possibleConnectors with 
-            | [] -> nrsFound + 1
-            | [connection] -> nrsFound + (recFunc nrsFound connection)
-            | connections -> nrsFound + (connections |> List.sumBy (fun c -> recFunc nrsFound c) )
-    recFunc 0 start
+
+let createVisitedSequenceforAll (input: int list) (start: int) : int64 =
+    let cache = Dictionary<int, int64>()
+    let cachedFunc f x = 
+        let incache, value = cache.TryGetValue(x)
+        if (incache) then
+            value
+        else 
+            let res = f x 
+            cache.Add(x,res)
+            res
+
+    let rec recFunc (start:int) : int64 = 
+       let possibleConnectors = findConnectors input start 
+       match possibleConnectors with 
+            | [] -> 1L
+            | [a] -> (cachedFunc recFunc) a
+            | a :: b :: [] -> (cachedFunc recFunc) a + (cachedFunc recFunc) b
+            | a :: b :: c :: [] -> (cachedFunc recFunc) a + (cachedFunc recFunc) b + (cachedFunc recFunc) c
+    recFunc start
 
 let nrOfCombinations (data: int list) = 
     createVisitedSequenceforAll data chargingOutlet 
 
 [<Fact>]
 let ``visitAllInLongerTestfile`` () = 
-    Assert.Equal(19208, nrOfCombinations longerTestdata)
+    Assert.Equal(19208L, nrOfCombinations longerTestdata)
 
 [<Fact>]
 let ``visitAllInTestfile`` () = 
-    Assert.Equal(8, nrOfCombinations testdata)
+    Assert.Equal(8L, nrOfCombinations testdata)
 
 [<Fact>]
 let ``visitTestfile`` () = 
@@ -105,7 +118,11 @@ let ``visitLongerTestfileProduct`` () =
 [<Fact>]
 let ``part1 is correct`` () = 
     Assert.Equal(2775, product "data/input.txt")
-     
+
+[<Fact>]
+let ``part2 is correct`` () = 
+    Assert.Equal(518344341716992L , nrOfCombinations (parseFile "data/input.txt"))
+      
 [<EntryPoint>]
 let main argv =
     printfn "Nr 1 is : %A" (product "data/input.txt")
