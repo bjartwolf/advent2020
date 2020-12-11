@@ -9,6 +9,9 @@
     <Content Include="data\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="data\part2_testdata_0.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="data\testdata_round_5.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

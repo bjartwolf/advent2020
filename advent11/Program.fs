@@ -4,12 +4,13 @@ open System
 open Xunit 
 
 type seatState = Empty | Occ | Floor
+type boardSize = int * int 
 type Seats =  Map<int*int, seatState>
 type Plane = { width : int;
                height: int;
                seats: Seats }
 
-let readSeats file : Map<int*int, seatState> = 
+let readSeats file : Map<int*int, seatState> * boardSize = 
     let rows = System.IO.File.ReadAllLines file
     let length = rows.Length
     let width = rows.[0].Length
@@ -22,7 +23,7 @@ let readSeats file : Map<int*int, seatState> =
                                 | 'L' -> Empty
                                 | '#' -> Occ
                 m <- Map.add (row, column) seat' m 
-    m
+    (m,(length,width))
 
 let countStates (state: seatState) (seats: Seats) : int = 
     seats |> Seq.where (fun s -> s.Value = state) |> Seq.length 
@@ -52,16 +53,29 @@ let testState3 = readSeats "data/testdata_round_3.txt"
 let testState4 = readSeats "data/testdata_round_4.txt"
 let testState5 = readSeats "data/testdata_round_5.txt"
 
-let adjacentSeats (seats: Seats) (pos: int*int) : Seats =
-    seats |> Map.filter (fun seatPos -> fun _ -> isAdjacent seatPos pos) 
+let adjacentSeats (seats: Seats) (boardSize: boardSize) ((x,y): int*int) : Seats =
+    // speed it up by looking at only the possible seats
+    let (sizeX,sizeY) = boardSize
+
+    let posssiblePositions  = [x+1,y;
+                               x-1,y;
+                               x,y+1;
+                               x,y-1;
+                               x-1,y-1;
+                               x+1,y+1;
+                               x-1,y+1;
+                               x+1,y-1]
+    let positions = posssiblePositions |> List.filter (fun (x,y) -> x >= 0 && x < sizeX && y >= 0 && y < sizeY)
+//    let positions = posssiblePositions |> List.filter (fun seatPos -> isAdjacent seatPos (x,y) )
+    positions |> List.map (fun e -> (e, Map.find e seats)) |> Map.ofList
 
 let countEmpty = countStates Empty
 let countOcc = countStates Occ 
 let countFloor = countStates Floor 
 let countAll seats = countEmpty seats + countOcc seats + countFloor seats 
 
-let calcNewState (pos: int*int) (seats: Seats) : seatState =
-    let adjacent =  adjacentSeats seats 
+let calcNewState (pos: int*int) (boardSize: int*int) (seats: Seats) : seatState =
+    let adjacent =  adjacentSeats seats boardSize 
     let seat = Map.find pos seats
     let nrOfOccupied = countOcc (adjacent pos)
     match seat, nrOfOccupied with 
@@ -69,15 +83,16 @@ let calcNewState (pos: int*int) (seats: Seats) : seatState =
         | Empty, 0 -> Occ
         | s,_ -> s 
 
-let calcNewboardState (seats: Seats) : Seats =
-    seats |> Map.map (fun seatPos -> fun _ -> calcNewState seatPos seats) 
+let calcNewboardState (seats: Seats) (boardSize: int*int) : Seats =
+    seats |> Map.map (fun seatPos -> fun _ -> calcNewState seatPos boardSize seats) 
 
-let rec runSimulationUntilCompletion (seats: Seats) : Seats =
-    let newState = calcNewboardState seats
+    // make an inner loop
+let rec runSimulationUntilCompletion (seats: Seats, size: boardSize) : Seats =
+    let newState = calcNewboardState seats size
     if (newState = seats) then
         seats
     else
-        runSimulationUntilCompletion newState
+        runSimulationUntilCompletion (newState, size)
 
 [<Fact>]
 let ``Calculating occupied seats works for testdata``() =
@@ -85,8 +100,10 @@ let ``Calculating occupied seats works for testdata``() =
  
 [<Fact>]
 let ``Calculating entire simulation works for testdata``() =
-    let endState = runSimulationUntilCompletion testState
-    let endStateReached = endState = testState5
+    let (initSeats, boardSize) = testState
+    let (endSeats, _) = testState5
+    let endState = runSimulationUntilCompletion (initSeats, boardSize)
+    let endStateReached = endState = endSeats 
     Assert.True(endStateReached)
 
     (*
@@ -96,23 +113,32 @@ let ``Calculating entire simulation works for input``() =
  *) 
 [<Fact>]
 let ``Calculating new state works for testdata``() =
-    Assert.True(calcNewboardState testState = testState1)
-    Assert.True(calcNewboardState testState1 = testState2)
-    Assert.True(calcNewboardState testState2 = testState3)
-    Assert.True(calcNewboardState testState3 = testState4)
-    Assert.True(calcNewboardState testState4 = testState5)
+    let (initSeats, boardSize) = testState
+    let (s1,_) = testState1
+    let (s2,_) = testState2
+    let (s3,_) = testState3
+    let (s4,_) = testState4
+    let (s5,_) = testState5
+    Assert.True(calcNewboardState initSeats boardSize = s1)
+    Assert.True(calcNewboardState s1 boardSize = s2)
+    Assert.True(calcNewboardState s2 boardSize = s3)
+    Assert.True(calcNewboardState s3 boardSize = s4)
+    Assert.True(calcNewboardState s4 boardSize = s5)
     
 [<Fact>]
 let ``Calculating new state works``() =
-    Assert.Equal(Occ, calcNewState (0,0) testState)
-    Assert.Equal(Occ, calcNewState (1,1) testState)
-    Assert.Equal(Occ, calcNewState (1,0) testState)
-    Assert.Equal(Floor, calcNewState (0,1) testState)
-    Assert.Equal(Empty, calcNewState (0,3) testState1)
+    let (initSeats, _) = testState
+    let (s1,_) = testState1
+    Assert.Equal(Occ, calcNewState (0,0) (9,9) initSeats)
+    Assert.Equal(Occ, calcNewState (1,1) (9,9) initSeats)
+    Assert.Equal(Occ, calcNewState (1,0) (9,9) initSeats)
+    Assert.Equal(Floor, calcNewState (0,1) (9,9) initSeats)
+    Assert.Equal(Empty, calcNewState (0,3) (9,9) s1)
  
 [<Fact>]
 let ``Adjant seat counts fairly accurate with states``() =
-    let adjacent =  adjacentSeats testState  
+    let (s0, boardSize) = testState
+    let adjacent =  adjacentSeats s0 boardSize
     Assert.Equal(2, countEmpty (adjacent (0,0)))
     Assert.Equal(1, countFloor (adjacent (0,0)))
     Assert.Equal(0, countOcc (adjacent (0,0)))
@@ -122,7 +148,8 @@ let ``Adjant seat counts fairly accurate with states``() =
   
 [<Fact>]
 let ``Adjant seat counts fairly accurate``() =
-    let adjacent =  adjacentSeats testState  
+    let (s0, boardSize) = testState
+    let adjacent =  adjacentSeats s0 boardSize 
     Assert.Equal(3, countAll (adjacent (0,0)))
     Assert.Equal(8, countAll (adjacent (1,1)))
     Assert.Equal(3, countAll (adjacent (9,9)))
@@ -132,8 +159,10 @@ let ``Adjant seat counts fairly accurate``() =
 
 [<Fact>]
 let ``Total 100``() =
-    Assert.Equal(100, countEmpty testState + countFloor testState + countOcc testState)
-    Assert.Equal(100, countAll testState) 
+    let (s0, boardSize) = testState
+    Assert.Equal((10,10), boardSize)
+    Assert.Equal(100, countEmpty s0 + countFloor s0 + countOcc s0)
+    Assert.Equal(100, countAll s0) 
 
 [<EntryPoint>]
 let main argv =
