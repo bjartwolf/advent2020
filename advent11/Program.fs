@@ -69,6 +69,39 @@ let adjacentSeats (seats: Seats) (boardSize: boardSize) ((x,y): int*int) : Seats
 //    let positions = posssiblePositions |> List.filter (fun seatPos -> isAdjacent seatPos (x,y) )
     positions |> List.map (fun e -> (e, Map.find e seats)) |> Map.ofList
 
+let adjacentSeatsV2 (seats: Seats) (boardSize: boardSize) ((x,y): int*int) : Seats =
+    // speed it up by looking at only the possible seats
+    let (sizeX,sizeY) = boardSize
+
+    let mult (x,y) scale =
+        (x*scale, y*scale)
+    let addVec (x1,y1) (x2,y2) = (x1+x2,y1+y2)
+    let posssibleDirections = [0+1,0;
+                               0-1,0;
+                               0,0+1;
+                               0,0-1;
+                               0-1,0-1;
+                               0+1,0+1;
+                               0-1,0+1;
+                               0+1,0-1]
+    let rec walk (dirx:int,diry:int) (scale:int) : ((int*int)* seatState) option =
+        let pos = addVec (x,y) (mult (dirx, diry) scale)
+        let (x1, y1) = pos
+        if not (x1 >= 0 && x1 < sizeX && y1 >= 0 && y1 < sizeY) then 
+             None // none? what do we get outside? Just not add it?
+        else 
+            let check = Map.find pos seats
+            match check with 
+                | Floor -> walk (dirx,diry) (scale+ 1)
+                | Empty -> Some (pos, Empty)
+                | Occ -> Some (pos, Occ)
+
+    posssibleDirections |> List.map (fun dir -> walk dir 1) |> List.choose id
+              |> Map.ofList 
+ //   positions |> List.map (fun e -> (e, Map.find e seats)) |> Map.ofList
+    
+ 
+
 let countEmpty = countStates Empty
 let countOcc = countStates Occ 
 let countFloor = countStates Floor 
@@ -145,7 +178,27 @@ let ``Adjant seat counts fairly accurate with states``() =
     Assert.Equal(6, countEmpty (adjacent (1,1)))
     Assert.Equal(2, countFloor (adjacent (1,1)))
     Assert.Equal(5, countEmpty (adjacent (9,5)))
-  
+
+[<Fact>]
+let ``See seats``() =
+   let (b,size) = readSeats "data/part2_testdata_0.txt"
+   let canSeeSeats = adjacentSeatsV2 b size (4,3) 
+   Assert.Equal(8, canSeeSeats |> countOcc) 
+
+[<Fact>]
+let ``See seats2``() =
+   let (b,size) = readSeats "data/part2_testdata_1.txt"
+   let canSeeSeats = adjacentSeatsV2 b size (1,1) 
+   Assert.Equal(1, canSeeSeats |> countAll) 
+   Assert.Equal(1, canSeeSeats |> countEmpty) 
+   Assert.Equal(0, canSeeSeats |> countOcc) 
+
+[<Fact>]
+let ``See seats3``() =
+   let (b,size) = readSeats "data/part2_testdata_2.txt"
+   let canSeeSeats = adjacentSeatsV2 b size (3,3) 
+   Assert.Equal(0, canSeeSeats |> countAll) 
+    
 [<Fact>]
 let ``Adjant seat counts fairly accurate``() =
     let (s0, boardSize) = testState
