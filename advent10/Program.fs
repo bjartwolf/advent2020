@@ -1,4 +1,5 @@
 ﻿open System
+open System.Collections.Generic
 open Xunit 
 
 let rating (adapters: int list) =
@@ -40,6 +41,7 @@ let rec createVisitedSequence (visited: int list) (input: int list) (start: int)
     else 
         createVisitedSequence (start :: visited) input firstConnector
 
+<<<<<<< HEAD
 let rec arr (current : int ) (cache : int64 option array) : int64 =
     if current >= Array.length cache then
         0L
@@ -57,17 +59,38 @@ let createVisitedSequenceforAll (input: int list) (start: int) (max: int): int64
     let foo = [| for i in 0 .. maxRating -> if List.contains i input' then None else Some 0L |]
     foo.[maxRating] <- Some 1L 
     arr 0 foo 
+=======
+
+let createVisitedSequenceforAll (input: int list) (start: int) : int64 =
+    let cache = Dictionary<int, int64>()
+    let cachedFunc f x = 
+        let incache, value = cache.TryGetValue(x)
+        if (incache) then
+            value
+        else 
+            let res = f x 
+            cache.Add(x,res)
+            res
+
+    let rec recFunc (start:int) : int64 = 
+       let possibleConnectors = findConnectors input start 
+       match possibleConnectors with 
+            | [] -> 1L
+            | [a] -> (cachedFunc recFunc) a
+            | a :: b :: [] -> (cachedFunc recFunc) a + (cachedFunc recFunc) b
+            | a :: b :: c :: [] -> (cachedFunc recFunc) a + (cachedFunc recFunc) b + (cachedFunc recFunc) c
+    recFunc start
 
 let nrOfCombinations (data: int list) = 
     createVisitedSequenceforAll data chargingOutlet 
 
 [<Fact>]
 let ``visitAllInLongerTestfile`` () = 
-    Assert.Equal(19208L, nrOfCombinations longerTestdata 52)
+   Assert.Equal(19208L, nrOfCombinations longerTestdata)
 
 [<Fact>]
 let ``visitAllInTestfile`` () = 
-    Assert.Equal(8L, nrOfCombinations testdata 22)
+    Assert.Equal(8L, nrOfCombinations testdata)
 
 [<Fact>]
 let ``visitTestfile`` () = 
@@ -102,7 +125,11 @@ let ``visitLongerTestfileProduct`` () =
 [<Fact>]
 let ``part1 is correct`` () = 
     Assert.Equal(2775, product "data/input.txt")
-     
+
+[<Fact>]
+let ``part2 is correct`` () = 
+    Assert.Equal(518344341716992L , nrOfCombinations (parseFile "data/input.txt"))
+      
 [<EntryPoint>]
 let main argv =
     printfn "Nr 1 is : %A" (product "data/input.txt")
