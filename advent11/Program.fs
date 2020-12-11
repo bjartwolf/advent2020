@@ -88,7 +88,7 @@ let adjacentSeatsV2 (seats: Seats) (boardSize: boardSize) ((x,y): int*int) : Sea
         let pos = addVec (x,y) (mult (dirx, diry) scale)
         let (x1, y1) = pos
         if not (x1 >= 0 && x1 < sizeX && y1 >= 0 && y1 < sizeY) then 
-             None // none? what do we get outside? Just not add it?
+             None 
         else 
             let check = Map.find pos seats
             match check with 
@@ -98,7 +98,6 @@ let adjacentSeatsV2 (seats: Seats) (boardSize: boardSize) ((x,y): int*int) : Sea
 
     posssibleDirections |> List.map (fun dir -> walk dir 1) |> List.choose id
               |> Map.ofList 
- //   positions |> List.map (fun e -> (e, Map.find e seats)) |> Map.ofList
     
  
 
@@ -116,8 +115,21 @@ let calcNewState (pos: int*int) (boardSize: int*int) (seats: Seats) : seatState 
         | Empty, 0 -> Occ
         | s,_ -> s 
 
+let calcNewStatev2 (pos: int*int) (boardSize: int*int) (seats: Seats) : seatState =
+    let adjacent =  adjacentSeatsV2 seats boardSize 
+    let seat = Map.find pos seats
+    let nrOfOccupied = countOcc (adjacent pos)
+    match seat, nrOfOccupied with 
+        | Occ, nrOfOccupied when nrOfOccupied >=5  -> Empty 
+        | Empty, 0 -> Occ
+        | s,_ -> s 
+
 let calcNewboardState (seats: Seats) (boardSize: int*int) : Seats =
     seats |> Map.map (fun seatPos -> fun _ -> calcNewState seatPos boardSize seats) 
+
+let calcNewboardStatev2 (seats: Seats) (boardSize: int*int) : Seats =
+    seats |> Map.map (fun seatPos -> fun _ -> calcNewStatev2 seatPos boardSize seats) 
+
 
     // make an inner loop
 let rec runSimulationUntilCompletion (seats: Seats, size: boardSize) : Seats =
@@ -126,6 +138,13 @@ let rec runSimulationUntilCompletion (seats: Seats, size: boardSize) : Seats =
         seats
     else
         runSimulationUntilCompletion (newState, size)
+
+let rec runSimulationUntilCompletionv2 (seats: Seats, size: boardSize) : Seats =
+    let newState = calcNewboardStatev2 seats size
+    if (newState = seats) then
+        seats
+    else
+        runSimulationUntilCompletionv2 (newState, size)
 
 [<Fact>]
 let ``Calculating occupied seats works for testdata``() =
@@ -144,6 +163,12 @@ let ``Calculating entire simulation works for testdata``() =
 let ``Calculating entire simulation works for input``() =
     Assert.Equal(2, runSimulationUntilCompletion (readSeats "data/input.txt") |> countOcc)
  *) 
+[<Fact>]
+let ``Calculating new state works for testdata2``() =
+    let (s0, boardSize) = testState
+    let (s1,_) = readSeats "data/testdata2_round_1.txt" 
+    Assert.True(calcNewboardStatev2 s0 boardSize = s1)
+
 [<Fact>]
 let ``Calculating new state works for testdata``() =
     let (initSeats, boardSize) = testState
@@ -220,5 +245,7 @@ let ``Total 100``() =
 [<EntryPoint>]
 let main argv =
     let sum = runSimulationUntilCompletion (readSeats "data/input.txt") |> countOcc
-    printfn "occupied %A" sum 
+    let sum2 = runSimulationUntilCompletionv2 (readSeats "data/input.txt") |> countOcc
+    printfn "occupied 1  %A" sum 
+    printfn "occupied 2 %A" sum2 
     0 // return an integer exit codnse
