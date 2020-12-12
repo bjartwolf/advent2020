@@ -10,6 +10,10 @@ type Pos = int * int
 type WP = { dir: Dir;
             pos: Pos }
 
+type Boat = { b: Pos;
+              d: Dir;
+              wp: WP }
+
 type Cmd =  N of int | S of int | E of int | W of int 
             | L of int | R of int | F of int
 
@@ -106,12 +110,13 @@ let ``Trig works`` () =
     Assert.Equal(1, intCos -360) 
     Assert.Equal(0, intSin 0) 
 
-let initialBoat = { pos = (0,0); dir = 0}
+let initialWp = { pos = (0,0); dir = 0}
+
 
 [<Fact>]
 let ``Boat moves correct with testdata`` () =
     let cmds = getCommands "data/test1.txt" |> Array.toList
-    let b' = executeCommands cmds initialBoat 
+    let b' = executeCommands cmds initialWp
     let (x',y') = b'.pos
     Assert.Equal(17, x')
     Assert.Equal(-8, y')
@@ -120,7 +125,7 @@ let ``Boat moves correct with testdata`` () =
 [<Fact>]
 let ``Boat moves correct with inputdata`` () =
     let cmds = getCommands "data/input.txt" |> Array.toList
-    let b' = executeCommands cmds initialBoat 
+    let b' = executeCommands cmds initialWp
     Assert.Equal(319, taxiCabFromOrigin b')
   
 [<Fact>]
