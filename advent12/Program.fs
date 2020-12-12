@@ -7,11 +7,9 @@ open Xunit
 type Dir = int
 
 type Pos = int * int
-type WP = { dir: Dir;
-            pos: Pos }
+type WP =  Pos 
 
-type Boat = { b: Pos;
-              d: Dir;
+type Boat = { p: Pos;
               wp: WP }
 
 type Cmd =  N of int | S of int | E of int | W of int 
@@ -46,22 +44,9 @@ let parseCommands (input: string array) : Cmd array =
 let getCommands (i: string) : Cmd array =
     i |> readCommands |> parseCommands 
 
-let translate (b: WP) (distX: int) (distY: int)  : WP =
-    let (x,y) = b.pos 
-    { b with pos = (x+distX, y+distY)}
-
-let rotateLeft (b: WP) (degrees: int) : WP =
-    let dir' = b.dir + degrees 
-    { b with dir = dir' }
-
-let rotateRight (b: WP) (degrees: int) : WP =
-    let dir' = b.dir - degrees 
-    { b with dir = dir' }
-
-let moveNorth (dist: int) (b: WP) : WP = translate b 0 dist
-let moveEast (dist: int) (b: WP ) : WP = translate b dist 0
-let moveSouth (dist: int) (b: WP ) : WP = translate b 0 -dist
-let moveWest (dist: int) (b: WP ) : WP = translate b -dist 0
+let translateWp (wp: WP) (distX: int) (distY: int)  : WP =
+    let (x,y) = wp 
+    (x+distX, y+distY)
 
 let intSin (degrees: int) : int = 
     let angle = Math.PI * (double degrees) / 180.0;
@@ -71,13 +56,35 @@ let intCos (degrees: int) : int =
     let angle = Math.PI * (double degrees) / 180.0;
     int (Math.Cos(angle))
 
-let moveForward (dist: int) (b: WP ) : WP =
-    let (x,y) = b.pos
-    let x' = x + dist * intCos b.dir 
-    let y' = y + dist * intSin b.dir 
-    { b with pos = (x', y')}
+let rotate (wp: WP) (deg: int) : WP = 
+    let (x,y) = wp
+    let x' = x*(intCos deg) - y*(intSin deg)
+    let y' = x*(intSin deg) + y*(intCos deg)
+    (x', y')
 
-let execute (c: Cmd) (b: WP ) : WP =
+let rotateLeft (b: Boat) (degrees: int) : Boat =
+    { b with wp = rotate b.wp degrees }
+
+let rotateRight (b: Boat) (degrees: int) : Boat =
+    { b with wp  = rotate b.wp -degrees }
+
+let moveNorth (dist: int) (b: Boat)  : Boat = 
+    { b with wp = translateWp b.wp 0 dist }
+let moveEast (dist: int) (b: Boat ) : Boat = 
+    { b with wp = translateWp b.wp dist 0 }
+let moveSouth (dist: int) (b: Boat ) : Boat = 
+    { b with wp = translateWp b.wp 0 -dist }
+let moveWest (dist: int) (b: Boat ) : Boat = 
+    { b with wp = translateWp b.wp -dist 0 }
+
+let moveForward (dist: int) (b: Boat ) : Boat =
+    let (x,y) = b.p
+    let (wpx, wpy) = b.wp
+    let x' = x + dist * wpx 
+    let y' = y + dist * wpy 
+    { b with p = (x', y')}
+
+let execute (c: Cmd) (b: Boat ) : Boat =
     match c with 
         | N dist -> moveNorth dist b
         | E dist -> moveEast dist b
@@ -89,13 +96,13 @@ let execute (c: Cmd) (b: WP ) : WP =
 
 //need a small refactor.
 
-let rec executeCommands (cmds: Cmd list) (b: WP) : WP =
+let rec executeCommands (cmds: Cmd list) (b: Boat) : Boat=
     match cmds with
         | c :: rest -> executeCommands rest (execute c b)
         | [] -> b    
 
-let taxiCabFromOrigin (b:WP) : int = 
-    let (x,y) = b.pos
+let taxiCabFromOrigin (b:Boat) : int = 
+    let (x,y) = b.p
     Math.Abs x + Math.Abs y
 
 [<Fact>]
@@ -110,23 +117,25 @@ let ``Trig works`` () =
     Assert.Equal(1, intCos -360) 
     Assert.Equal(0, intSin 0) 
 
-let initialWp = { pos = (0,0); dir = 0}
+let initialWp = (10,1)
+let initialBoat = { p= (0,0);
+                    wp = (10,1) }
 
 
 [<Fact>]
 let ``Boat moves correct with testdata`` () =
     let cmds = getCommands "data/test1.txt" |> Array.toList
-    let b' = executeCommands cmds initialWp
-    let (x',y') = b'.pos
-    Assert.Equal(17, x')
-    Assert.Equal(-8, y')
-    Assert.Equal(25, taxiCabFromOrigin b')
+    let b' = executeCommands cmds initialBoat
+    let (x',y') = b'.p
+    Assert.Equal(214, x')
+    Assert.Equal(-72, y')
+    Assert.Equal(286, taxiCabFromOrigin b')
 
 [<Fact>]
 let ``Boat moves correct with inputdata`` () =
     let cmds = getCommands "data/input.txt" |> Array.toList
-    let b' = executeCommands cmds initialWp
-    Assert.Equal(319, taxiCabFromOrigin b')
+    let b' = executeCommands cmds initialBoat
+    Assert.Equal(50157, taxiCabFromOrigin b')
   
 [<Fact>]
 let ``Commands are parsed`` () =
