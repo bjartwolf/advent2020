@@ -7,8 +7,8 @@ open Xunit
 type Dir = int
 
 type Pos = int * int
-type Boat = { dir: Dir;
-              pos: Pos }
+type WP = { dir: Dir;
+            pos: Pos }
 
 type Cmd =  N of int | S of int | E of int | W of int 
             | L of int | R of int | F of int
@@ -42,22 +42,22 @@ let parseCommands (input: string array) : Cmd array =
 let getCommands (i: string) : Cmd array =
     i |> readCommands |> parseCommands 
 
-let translate (b: Boat) (distX: int) (distY: int)  : Boat =
+let translate (b: WP) (distX: int) (distY: int)  : WP =
     let (x,y) = b.pos 
     { b with pos = (x+distX, y+distY)}
 
-let rotateLeft (b: Boat) (degrees: int) : Boat =
+let rotateLeft (b: WP) (degrees: int) : WP =
     let dir' = b.dir + degrees 
     { b with dir = dir' }
 
-let rotateRight (b: Boat) (degrees: int) : Boat =
+let rotateRight (b: WP) (degrees: int) : WP =
     let dir' = b.dir - degrees 
     { b with dir = dir' }
 
-let moveNorth (dist: int) (b: Boat) : Boat = translate b 0 dist
-let moveEast (dist: int) (b: Boat) : Boat = translate b dist 0
-let moveSouth (dist: int) (b: Boat) : Boat = translate b 0 -dist
-let moveWest (dist: int) (b: Boat) : Boat = translate b -dist 0
+let moveNorth (dist: int) (b: WP) : WP = translate b 0 dist
+let moveEast (dist: int) (b: WP ) : WP = translate b dist 0
+let moveSouth (dist: int) (b: WP ) : WP = translate b 0 -dist
+let moveWest (dist: int) (b: WP ) : WP = translate b -dist 0
 
 let intSin (degrees: int) : int = 
     let angle = Math.PI * (double degrees) / 180.0;
@@ -67,13 +67,13 @@ let intCos (degrees: int) : int =
     let angle = Math.PI * (double degrees) / 180.0;
     int (Math.Cos(angle))
 
-let moveForward (dist: int) (b: Boat) : Boat =
+let moveForward (dist: int) (b: WP ) : WP =
     let (x,y) = b.pos
     let x' = x + dist * intCos b.dir 
     let y' = y + dist * intSin b.dir 
     { b with pos = (x', y')}
 
-let execute (c: Cmd) (b: Boat) : Boat =
+let execute (c: Cmd) (b: WP ) : WP =
     match c with 
         | N dist -> moveNorth dist b
         | E dist -> moveEast dist b
@@ -83,12 +83,14 @@ let execute (c: Cmd) (b: Boat) : Boat =
         | R deg -> rotateRight b deg
         | F dist -> moveForward dist b 
 
-let rec executeCommands (cmds: Cmd list) (b: Boat) : Boat =
+//need a small refactor.
+
+let rec executeCommands (cmds: Cmd list) (b: WP) : WP =
     match cmds with
         | c :: rest -> executeCommands rest (execute c b)
         | [] -> b    
 
-let taxiCabFromOrigin (b:Boat) : int = 
+let taxiCabFromOrigin (b:WP) : int = 
     let (x,y) = b.pos
     Math.Abs x + Math.Abs y
 
