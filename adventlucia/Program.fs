@@ -12,22 +12,28 @@ let parseInput (file: string) : Input =
           |> Array.where(fun (_,s) -> not (s = "x"))
           |> Array.map (fun (o,r) -> int64 r, int64 o)
 
-let busDepartsAtTsPlusInt ((r,o) : Bus) (ts: int64) : bool =
-    (ts + o) % r = 0L 
-
 let verifySolution (i: Input) (ts: int64) : bool =
-    i |> Array.map (fun b -> busDepartsAtTsPlusInt b ts) 
-      |> Array.forall id 
+    i |> Array.forall (fun (r,o) -> (ts + o) % r = 0L)
 
-    
+let solutions (i: Input) = 
+    let (r,_) = i.[0]
+    seq {
+       for ts in 0L .. r .. Int64.MaxValue do if (verifySolution i ts) then ts  
+    }
+
 [<Fact>]
 let ``examples`` () =
     Assert.True(verifySolution (parseInput "data/test_1.txt") 1068781L)
+    Assert.Equal(solutions (parseInput "data/test_1.txt") |> Seq.head, 1068781L)
+//    Assert.Equal(solutions (parseInput "data/input.txt") |> Seq.head, 1068781L)
     Assert.True(verifySolution (parseInput "data/test_2.txt") 3417L)
     Assert.True(verifySolution (parseInput "data/test_3.txt") 754018L)
     Assert.True(verifySolution (parseInput "data/test_4.txt") 779210L)
+    Assert.Equal(solutions (parseInput "data/test_4.txt") |> Seq.head, 779210L)
     Assert.True(verifySolution (parseInput "data/test_5.txt") 1261476L)
+    Assert.Equal(solutions (parseInput "data/test_5.txt") |> Seq.head, 1261476L)
     Assert.True(verifySolution (parseInput "data/test_6.txt") 1202161486L)
+    Assert.Equal(solutions (parseInput "data/test_6.txt") |> Seq.head, 1202161486L)
 
 [<Fact>]
 let ``counter examples`` () =
@@ -52,5 +58,6 @@ let ``parse input`` () =
     
 [<EntryPoint>]
 let main argv =
-    printfn "Hello World from F#!"
+    let solution = solutions (parseInput "data/input.txt") |> Seq.head
+    printfn "%A" solution 
     0 // return an integer exit code
