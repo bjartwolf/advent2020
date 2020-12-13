@@ -16,7 +16,8 @@ let parseInput (file: string) : Input =
 let verifySolution (i: (int64*int64*int64) []) (ts: int64) : bool =
     // teste med at r er produktet av alle tallene
     // det er noe med å bare sjekke for de tallene, ikke lage sekvenser for alt annet
-    i |> Array.forall (fun (_,r, omodr) -> (ts % r) + omodr = r || (ts % r) + omodr = 0L)
+    i |> Array.forall (fun (_,r, omodr) -> let tsr = (ts % r)
+                                           tsr + omodr = r || tsr + omodr = 0L)
 
 let solutions (i: Input) = 
     let (_,r,_) = i.[0]
@@ -62,6 +63,8 @@ let ``parse input`` () =
 [<EntryPoint>]
 let main argv =
     printfn "GOOOO!"
+    let solution1 = solutions (parseInput "data/test_1.txt") |> Seq.head
+    printfn "%A" solution1
     let solution = solutions (parseInput "data/input.txt") |> Seq.head
     printfn "%A" solution 
     0 // return an integer exit code
