@@ -13,7 +13,7 @@ let parseInput (file: string) : Input =
           |> Array.map (fun (o,r) -> int64 r, int64 o)
 
 let verifySolution (i: Input) (ts: int64) : bool =
-    i |> Array.forall (fun (r,o) -> (ts + o) % r = 0L)
+    i |> Array.forall (fun (r,o) -> (ts % r + o % r) % r= 0L)
 
 let solutions (i: Input) = 
     let (r,_) = i.[0]
