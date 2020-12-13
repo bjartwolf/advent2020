@@ -26,7 +26,7 @@ let solutions (i: Input) =
 
 [<Fact>]
 let ``examples`` () =
-    Assert.True(verifySolution (parseInput "data/test_1.txt") 1068781L)
+    Assert.True(verifySolution (parseInput "data/test_  1.txt") 1068781L)
     Assert.Equal(solutions (parseInput "data/test_1.txt") |> Seq.head, 1068781L)
     Assert.True(verifySolution (parseInput "data/test_2.txt") 3417L)
     Assert.True(verifySolution (parseInput "data/test_3.txt") 754018L)
