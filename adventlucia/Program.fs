@@ -18,12 +18,25 @@ let busDepartsAtTsPlusInt ((r,o) : Bus) (ts: int64) : bool =
 let verifySolution (i: Input) (ts: int64) : bool =
     i |> Array.map (fun b -> busDepartsAtTsPlusInt b ts) 
       |> Array.forall id 
+
     
 [<Fact>]
-let ``example 1`` () =
-    let buses = parseInput "data/test_1.txt"
-    let answer = 1068781L
-    Assert.True(verifySolution buses answer)
+let ``examples`` () =
+    Assert.True(verifySolution (parseInput "data/test_1.txt") 1068781L)
+    Assert.True(verifySolution (parseInput "data/test_2.txt") 3417L)
+    Assert.True(verifySolution (parseInput "data/test_3.txt") 754018L)
+    Assert.True(verifySolution (parseInput "data/test_4.txt") 779210L)
+    Assert.True(verifySolution (parseInput "data/test_5.txt") 1261476L)
+    Assert.True(verifySolution (parseInput "data/test_6.txt") 1202161486L)
+
+[<Fact>]
+let ``counter examples`` () =
+    Assert.False(verifySolution (parseInput "data/test_1.txt") 1068780L)
+    Assert.False(verifySolution (parseInput "data/test_2.txt") 3416L)
+    Assert.False(verifySolution (parseInput "data/test_3.txt") 754017L)
+    Assert.False(verifySolution (parseInput "data/test_4.txt") 779200L)
+    Assert.False(verifySolution (parseInput "data/test_5.txt") 1261376L)
+    Assert.False(verifySolution (parseInput "data/test_6.txt") 1202061486L)
 
 [<Fact>]
 let ``example 1 falsify`` () =
