@@ -1,6 +1,27 @@
 ﻿open System
 open Xunit
 
+[<AutoOpen>]
+module Common =
+    let curry f = (fun a b -> f(a,b))
+    let uncurry f = (fun (a,b) -> f a b)
+
+    let zipWith f ls l's =
+        let rec inner ls l's cont =
+            match ls, l's with
+            | [], []         -> cont []
+            | l::ls, l'::l's -> inner ls l's (fun r -> (f l l')::r |> cont)
+            | _              -> failwith "Lists don't have same length"
+        inner ls l's (fun r -> r)
+
+    let zipWith3 f ls l's l''s =
+        let rec inner ls l's l''s cont =
+            match ls, l's, l''s with
+            | [], [], []                -> cont []
+            | l::ls, l'::l's, l''::l''s -> inner ls l's l''s (fun r -> (f l (f l' l''))::r |> cont)
+            | _                         -> failwith "Lists don't have same length"
+        inner ls l's l''s (fun r -> r)
+
 // Route and offsetmodr, makes int64 to make it easier to compare 
 type Bus = int64 * int64 * int64
 type Input = Bus [] 
@@ -17,17 +38,18 @@ let verifySolution (i: (int64*int64*int64) []) (ts: int64) : bool =
     // teste med at r er produktet av alle tallene
     // det er noe med å bare sjekke for de tallene, ikke lage sekvenser for alt annet
     i |> Array.forall (fun (_,r, omodr) -> let tsr = (ts % r)
-                                           tsr + omodr = r || tsr + omodr = 0L)
+                                           (tsr + omodr = r || tsr + omodr = 0L))
 
 let solutions (i: Input) = 
     let (_,r,_) = i.[0]
+    let verifyer = verifySolution i 
     seq {
-       for ts in 0L .. r .. Int64.MaxValue do if (verifySolution i ts) then ts  
+       for ts in 0L .. r .. Int64.MaxValue do if (verifyer ts) then ts  
     }
 
 [<Fact>]
 let ``examples`` () =
-    Assert.True(verifySolution (parseInput "data/test_  1.txt") 1068781L)
+    Assert.True(verifySolution (parseInput "data/test_1.txt") 1068781L)
     Assert.Equal(solutions (parseInput "data/test_1.txt") |> Seq.head, 1068781L)
     Assert.True(verifySolution (parseInput "data/test_2.txt") 3417L)
     Assert.True(verifySolution (parseInput "data/test_3.txt") 754018L)
@@ -36,8 +58,7 @@ let ``examples`` () =
     Assert.True(verifySolution (parseInput "data/test_5.txt") 1261476L)
     Assert.Equal(solutions (parseInput "data/test_5.txt") |> Seq.head, 1261476L)
     Assert.True(verifySolution (parseInput "data/test_6.txt") 1202161486L)
-    Assert.Equal(solutions (parseInput "data/test_6.txt") |> Seq.head, 1202161486L)
-//    Assert.Equal(solutions (parseInput "data/input.txt") |> Seq.head, 1068781L)
+    Assert.True(verifySolution (parseInput "data/input.txt") 210612924881803L)
 
 [<Fact>]
 let ``counter examples`` () =
@@ -47,7 +68,6 @@ let ``counter examples`` () =
     Assert.False(verifySolution (parseInput "data/test_4.txt") 779200L)
     Assert.False(verifySolution (parseInput "data/test_5.txt") 1261376L)
     Assert.False(verifySolution (parseInput "data/test_6.txt") 1202061486L)
-
 [<Fact>]
 let ``example 1 falsify`` () =
     let buses = parseInput "data/test_1.txt"
@@ -59,12 +79,33 @@ let ``parse input`` () =
     let buses = parseInput "data/test_1.txt"
     let busesMatchInput  = (buses = [|(0L,7L,0L);(1L,13L,1L);(4L,59L,4L);(6L,31L,6L);(7L,19L,7L)|])
     Assert.True(busesMatchInput)
-    
+
+let writeInput (input: Input)  =
+    for line in input do
+        let (o,r,foo) = line 
+  //      printfn "x = Bus nr %i departs %i minutes after " r o
+ //       printfn "x = whic is really the same as departing %i minutes after " (o % r) 
+        printfn "x = %i mod %i" (r - o) r
+        ()
+
+let rec sieve cs x N =
+    match cs with
+    | [] -> Some(x)
+    | (a,n)::rest ->
+        let arrProgress = Seq.unfold (fun x -> Some(x, x+N)) x
+        let firstXmodNequalA = Seq.tryFind (fun x -> a = x % n)
+        match firstXmodNequalA (Seq.take n arrProgress) with
+        | None -> None
+        | Some(x) -> sieve rest x (N*n)
+
 [<EntryPoint>]
 let main argv =
     printfn "GOOOO!"
-    let solution1 = solutions (parseInput "data/test_1.txt") |> Seq.head
-    printfn "%A" solution1
-    let solution = solutions (parseInput "data/input.txt") |> Seq.head
-    printfn "%A" solution 
+    printfn " "
+    writeInput  (parseInput "data/input.txt") 
+    printfn " "
+    writeInput  (parseInput "data/test_5.txt") 
+    printfn " "
+    writeInput  (parseInput "data/test_6.txt") 
+    // paste input into https://davidwees.com/chineseremaindertheorem/
     0 // return an integer exit code
