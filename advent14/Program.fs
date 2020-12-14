@@ -131,6 +131,20 @@ let rec evaluateInstructionsFunky (mem, prog, mask) : ProgramState =
                                             evaluateInstructionsFunky (mem', rest, mask ) // replace bitmask and move on
         | [] ->  (mem, prog, mask) // done
 
+let sumOfMemory (mem : Memory) : int64 =
+   mem |> Map.toSeq |> Seq.map snd |> Seq.sum
+
+[<Fact>]
+let ``Funkycode works`` () = 
+    let initialMask = parseMask "000000000000000000000000000000X1001X";
+    let program : Program = [ Mask (parseMask "000000000000000000000000000000X1001X");
+                              MemInstr (parseMemory "mem[42] = 100");
+                              Mask (parseMask "00000000000000000000000000000000X0XX");
+                              MemInstr (parseMemory "mem[26] = 1"); ]
+    let initialProgram = (Map.empty, program, initialMask) 
+    let (memfunky, prog, mask) = evaluateInstructionsFunky initialProgram 
+    Assert.Equal(208L, sumOfMemory memfunky )
+    
 
 [<Fact>]
 let ``last bitmask is in memory`` () = 
@@ -139,8 +153,6 @@ let ``last bitmask is in memory`` () =
     let masksMatch = mask = mask'
     Assert.True(masksMatch)
 
-let sumOfMemory (mem : Memory) : int64 =
-   mem |> Map.toSeq |> Seq.map snd |> Seq.sum
 // instruksjonene 
 //The current bitmask is applied to values immediately before they are written to memory
 [<EntryPoint>]
