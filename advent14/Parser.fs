@@ -37,17 +37,25 @@ let parseMask (input:string) : Bitmask =
 
 let parseProgram inputFile : Program =
     let programCode = IO.File.ReadAllLines inputFile
-
-    [ Mask (parseMask programCode.[0]);
-      MemInstr (parseMemory programCode.[1]) ]
+    let parsedLines = seq { 
+        for line in programCode do
+            if line.Contains("mask") then 
+                yield Mask (parseMask line)         
+            else 
+                yield MemInstr (parseMemory line)
+    }
+    parsedLines |> Seq.toList
+           
 
 [<Fact>]
 let ``parse testprogram works`` () =
     let program = parseProgram "input.txt" 
     let firstInstr = program.Head
     let secondInst = program.Tail.Head
+    let thirdInstr = program |> List.skip 3 |> List.head
     match firstInstr with | Mask mask -> Assert.Equal(Hi, mask.[35])
     match secondInst with | MemInstr i-> Assert.Equal((6540, 1053547115), i) 
+    match thirdInstr with | MemInstr (13014,7128)-> Assert.True(true)
     
 [<Fact>]
 let ``parse testmask works`` () = 
