@@ -12,6 +12,26 @@ let initialMask = match program with | Mask mask :: _  -> mask
 
 let initialProgram : ProgramState = (Map.empty, program, initialMask) 
 
+   // make sure this thing is long enough too
+let applyBitmask (address: int64) (mask: Bitmask)  : Bitmask =
+    let intAsBools = new Collections.BitArray(BitConverter.GetBytes(address)) |> Seq.cast<bool>
+    Seq.zip intAsBools mask
+        |> Seq.map (fun e -> match e with
+                                        | (true,Low) -> Hi 
+                                        | (false,Low) -> Low 
+                                        | (_,Hi) -> Hi 
+                                        | (_,Unchanged) -> Unchanged )
+        |> Seq.toArray
+
+[<Fact>]
+let ``applyMask to 42`` () =
+    let address = 42L;
+    let mask = parseMask "000000000000000000000000000000X1001X"
+    let result = parseMask "000000000000000000000000000000X1101X"
+    let appliedMask = applyBitmask address mask 
+    let maskEqualsResult = (result |> Seq.toList) = Seq.toList (appliedMask)
+    Assert.True(maskEqualsResult)
+
 let evalMemoryInstruction (mask: Bitmask) (memValue: int64) : int64 =
     let intAsBytes = new Collections.BitArray(BitConverter.GetBytes(memValue)) |> Seq.cast<bool>
     Seq.zip intAsBytes mask
