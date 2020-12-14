@@ -10,7 +10,6 @@ type ProgramState = Memory * Program * Bitmask
     
 let initialMask = match program with | Mask mask :: _  -> mask 
 
-
 let initialProgram : ProgramState = (Map.empty, program, initialMask) 
 
 let boolsToInt (bools: bool seq) : int64 =
@@ -30,7 +29,7 @@ let evalMemoryInstruction (mask: Bitmask) (memValue: int64) : int64 =
                                         | (_,Low) -> false
                                         | (b,Unchanged) -> b) 
         |> boolsToInt
- 
+
 // make sure this thing is long enough in case things are not long enough
 // looks like it works... maybe because the int64 always are longer than the masks
 // also a bit hacky reusing the bitmask as a new bitmask, or maybe not.
@@ -117,6 +116,22 @@ let rec evaluateInstructions (mem, prog, mask) : ProgramState =
                                             evaluateInstructions (mem', rest, mask ) // replace bitmask and move on
         | [] ->  (mem, prog, mask) // done
 
+let rec updateMapWithManyAddresses (map: Map<int64,int64>) (addresses: int64 list) (res: int64) : Map<int64,int64> =
+    match addresses with
+        | [] -> map
+        | address :: rest -> let m' = Map.add address res map
+                             updateMapWithManyAddresses m' rest res  
+
+let rec evaluateInstructionsFunky (mem, prog, mask) : ProgramState =
+    match prog with 
+        | Mask bitmask :: rest ->  evaluateInstructionsFunky (mem, rest, bitmask) // replace bitmask and move on
+        | MemInstr (addr, value) :: rest -> let res = evalMemoryInstruction mask value
+                                            let addresses = funkyApplication addr mask
+                                            let mem' = updateMapWithManyAddresses mem addresses res 
+                                            evaluateInstructionsFunky (mem', rest, mask ) // replace bitmask and move on
+        | [] ->  (mem, prog, mask) // done
+
+
 [<Fact>]
 let ``last bitmask is in memory`` () = 
     let (mem, prog, mask)= evaluateInstructions initialProgram
@@ -131,5 +146,7 @@ let sumOfMemory (mem : Memory) : int64 =
 [<EntryPoint>]
 let main argv =
     let (mem, prog, mask) = evaluateInstructions initialProgram 
+    let (memfunky, prog, mask) = evaluateInstructionsFunky initialProgram 
     printfn "%A" (sumOfMemory mem )
+    printfn "Funkyres %A" (sumOfMemory memfunky )
     0 // return an integer exit code
