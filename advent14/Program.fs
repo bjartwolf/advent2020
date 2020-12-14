@@ -58,19 +58,38 @@ let rec generateCombinations (mask: Bitmask) : Bitmask seq =
             yield mask
     }
 
+let funkyApplication (address: int64) (mask: Bitmask) : int64 list =
+    let mask' = applyBitmask address mask
+    let combinations = generateCombinations mask'
+    combinations |> Seq.map (bitmaskToInt) |> Seq.toList
+
 [<Fact>]
 let ``applyMask to 42 and yield the results`` () =
     let address = 42L;
     let mask = parseMask "000000000000000000000000000000X1001X"
-    let mask' = applyBitmask address mask
-    let combinations = generateCombinations mask'
-    let ints = combinations |> Seq.map (bitmaskToInt)
-    Assert.Equal(4, combinations |> Seq.length)
+    let ints = funkyApplication address mask 
+    Assert.Equal(4, ints |> Seq.length)
 
-    Assert.Contains(26L, ints)
+    Assert.Contains(26L, ints )
     Assert.Contains(27L, ints)
     Assert.Contains(58L, ints)
     Assert.Contains(59L, ints)
+
+[<Fact>]
+let ``applyMask to 26 and yield the results`` () =
+    let address = 26L;
+    let mask = parseMask "00000000000000000000000000000000X0XX"
+    let ints = funkyApplication address mask 
+    Assert.Equal(8, ints |> Seq.length)
+
+    Assert.Contains(16L, ints )
+    Assert.Contains(17L, ints)
+    Assert.Contains(18L, ints)
+    Assert.Contains(19L, ints)
+    Assert.Contains(24L, ints)
+    Assert.Contains(25L, ints)
+    Assert.Contains(26L, ints)
+    Assert.Contains(27L, ints)
 
     
 [<Fact>]
