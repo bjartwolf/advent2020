@@ -32,7 +32,9 @@ let ``Evaluate an instruction`` () =
 let rec evaluateInstructions (mem, prog, mask) : ProgramState =
     match prog with 
         | Mask bitmask :: rest ->  evaluateInstructions (mem, rest, bitmask) // replace bitmask and move on
-        | MemInstr instr :: rest ->  evaluateInstructions (mem, rest, mask ) // replace bitmask and move on
+        | MemInstr (addr, value) :: rest -> let res = evalMemoryInstruction mask value
+                                            let mem' = Map.add addr res mem
+                                            evaluateInstructions (mem', rest, mask ) // replace bitmask and move on
         | [] ->  (mem, prog, mask) // done
 
 [<Fact>]
@@ -42,9 +44,12 @@ let ``last bitmask is in memory`` () =
     let masksMatch = mask = mask'
     Assert.True(masksMatch)
 
+let sumOfMemory (mem : Memory) : int64 =
+   mem |> Map.toSeq |> Seq.map snd |> Seq.sum
 // instruksjonene 
 //The current bitmask is applied to values immediately before they are written to memory
 [<EntryPoint>]
 let main argv =
-    printfn "Hello World from F#!"
+    let (mem, prog, mask) = evaluateInstructions initialProgram 
+    printfn "%A" (sumOfMemory mem )
     0 // return an integer exit code
