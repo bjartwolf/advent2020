@@ -1,15 +1,10 @@
 ﻿module Parser 
+
 open System
 open Xunit
+open Domain
 
-type Op = Hi | Low | Unchanged
-type Bitmask = Op array 
 let testmask = "mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X"
-
-type LoadToMem = int * int
-type Instruction = Mask of Bitmask | MemInstr of LoadToMem 
-type Program = Instruction list
-
 
 let parseMemory (input: string) : LoadToMem =
     let s = input.Split("=")
@@ -45,11 +40,11 @@ let parseProgram inputFile : Program =
                 yield MemInstr (parseMemory line)
     }
     parsedLines |> Seq.toList
-           
+
+let program = parseProgram "input.txt" 
 
 [<Fact>]
 let ``parse testprogram works`` () =
-    let program = parseProgram "input.txt" 
     let firstInstr = program.Head
     let secondInst = program.Tail.Head
     let thirdInstr = program |> List.skip 3 |> List.head
