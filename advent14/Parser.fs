@@ -28,7 +28,7 @@ let parseMask (input:string) : Bitmask =
     // should do something else
     // this requires the sequnece to be evaluated, should be something do for each, but
     // i would like the iterator like a for each. but it does not really matter
-    array
+    array |> Array.toList
 
 let parseProgram inputFile : Program =
     let programCode = IO.File.ReadAllLines inputFile

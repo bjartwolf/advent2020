@@ -10,9 +10,30 @@ type ProgramState = Memory * Program * Bitmask
     
 let initialMask = match program with | Mask mask :: _  -> mask 
 
+
 let initialProgram : ProgramState = (Map.empty, program, initialMask) 
 
-   // make sure this thing is long enough too
+let boolsToInt (bools: bool seq) : int64 =
+    bools |> Seq.mapi (fun i -> fun e -> if e then pown 2L i else 0L) |> Seq.sum
+
+let bitmaskToInt (b: Bitmask) : int64 =
+    b |> Seq.map (fun e -> match e with
+                                        | Hi -> true
+                                        | Low -> false)
+      |> boolsToInt 
+
+let evalMemoryInstruction (mask: Bitmask) (memValue: int64) : int64 =
+    let intAsBytes = new Collections.BitArray(BitConverter.GetBytes(memValue)) |> Seq.cast<bool>
+    Seq.zip intAsBytes mask
+        |> Seq.map (fun e -> match e with
+                                        | (_,Hi) -> true
+                                        | (_,Low) -> false
+                                        | (b,Unchanged) -> b) 
+        |> boolsToInt
+ 
+// make sure this thing is long enough in case things are not long enough
+// looks like it works... maybe because the int64 always are longer than the masks
+// also a bit hacky reusing the bitmask as a new bitmask, or maybe not.
 let applyBitmask (address: int64) (mask: Bitmask)  : Bitmask =
     let intAsBools = new Collections.BitArray(BitConverter.GetBytes(address)) |> Seq.cast<bool>
     Seq.zip intAsBools mask
@@ -21,8 +42,37 @@ let applyBitmask (address: int64) (mask: Bitmask)  : Bitmask =
                                         | (false,Low) -> Low 
                                         | (_,Hi) -> Hi 
                                         | (_,Unchanged) -> Unchanged )
-        |> Seq.toArray
+        |> Seq.toList
 
+// could of course make a sequnce a not a list, but not sure it helps me much
+let rec generateCombinations (mask: Bitmask) : Bitmask seq =
+    seq {
+        if (mask |> Seq.contains (Unchanged)) then 
+            let foo = mask |> List.toArray
+            let firstX = foo |> Array.findIndex (fun f -> f = Unchanged) 
+            foo.[firstX] <- Hi
+            yield! generateCombinations (foo |> Array.toList)
+            foo.[firstX] <- Low 
+            yield! generateCombinations (foo |> Array.toList)
+        else
+            yield mask
+    }
+
+[<Fact>]
+let ``applyMask to 42 and yield the results`` () =
+    let address = 42L;
+    let mask = parseMask "000000000000000000000000000000X1001X"
+    let mask' = applyBitmask address mask
+    let combinations = generateCombinations mask'
+    let ints = combinations |> Seq.map (bitmaskToInt)
+    Assert.Equal(4, combinations |> Seq.length)
+
+    Assert.Contains(26L, ints)
+    Assert.Contains(27L, ints)
+    Assert.Contains(58L, ints)
+    Assert.Contains(59L, ints)
+
+    
 [<Fact>]
 let ``applyMask to 42`` () =
     let address = 42L;
@@ -32,16 +82,7 @@ let ``applyMask to 42`` () =
     let maskEqualsResult = (result |> Seq.toList) = Seq.toList (appliedMask)
     Assert.True(maskEqualsResult)
 
-let evalMemoryInstruction (mask: Bitmask) (memValue: int64) : int64 =
-    let intAsBytes = new Collections.BitArray(BitConverter.GetBytes(memValue)) |> Seq.cast<bool>
-    Seq.zip intAsBytes mask
-        |> Seq.map (fun e -> match e with
-                                        | (_,Hi) -> true
-                                        | (_,Low) -> false
-                                        | (b,Unchanged) -> b) 
-        |> Seq.mapi (fun i -> fun e -> if e then pown 2L i else 0L) 
-        |> Seq.sum
-    
+   
 [<Fact>]
 let ``Evaluate an instruction`` () =
     let mask = parseMask "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X"
