@@ -125,9 +125,8 @@ let rec updateMapWithManyAddresses (map: Map<int64,int64>) (addresses: int64 lis
 let rec evaluateInstructionsFunky (mem, prog, mask) : ProgramState =
     match prog with 
         | Mask bitmask :: rest ->  evaluateInstructionsFunky (mem, rest, bitmask) // replace bitmask and move on
-        | MemInstr (addr, value) :: rest -> let res = evalMemoryInstruction mask value
-                                            let addresses = funkyApplication addr mask
-                                            let mem' = updateMapWithManyAddresses mem addresses res 
+        | MemInstr (addr, value) :: rest -> let addresses = funkyApplication addr mask
+                                            let mem' = updateMapWithManyAddresses mem addresses value 
                                             evaluateInstructionsFunky (mem', rest, mask ) // replace bitmask and move on
         | [] ->  (mem, prog, mask) // done
 
