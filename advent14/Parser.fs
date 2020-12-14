@@ -9,12 +9,12 @@ let testmask = "mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X"
 let parseMemory (input: string) : LoadToMem =
     let s = input.Split("=")
     let x = (s.[0]).Replace("mem[", "").Replace("]", "")
-    (int x, int s.[1])
+    (int64 x, int64 s.[1])
 
 [<Fact>]
 let ``parse memory works`` () = 
-   Assert.Equal((414, 4313357), parseMemory "mem[414] = 4313357")
-   Assert.Equal((666,32), parseMemory "mem[666] = 32")
+   Assert.Equal((414L, 4313357L), parseMemory "mem[414] = 4313357")
+   Assert.Equal((666L,32L), parseMemory "mem[666] = 32")
 
 let parseMask (input:string) : Bitmask =
     let mutable array = Array.create 36 Unchanged 
@@ -49,8 +49,8 @@ let ``parse testprogram works`` () =
     let secondInst = program.Tail.Head
     let thirdInstr = program |> List.skip 3 |> List.head
     match firstInstr with | Mask mask -> Assert.Equal(Hi, mask.[35])
-    match secondInst with | MemInstr i-> Assert.Equal((6540, 1053547115), i) 
-    match thirdInstr with | MemInstr (13014,7128)-> Assert.True(true)
+    match secondInst with | MemInstr i-> Assert.Equal((6540L, 1053547115L), i) 
+    match thirdInstr with | MemInstr (13014L,7128L)-> Assert.True(true)
     
 [<Fact>]
 let ``parse testmask works`` () = 
