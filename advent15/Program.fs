@@ -44,6 +44,7 @@ let ``firstSequence nr 2020`` () =
 let ``secondSequence nr 2020`` () =
     let (_, nr)= game [1;3;2] |> getNthElement 2020
     Assert.Equal(1, nr)
+
     let (_, nr)= game [2;1;3] |> getNthElement 2020
     Assert.Equal(10, nr)
     let (_, nr)= game [1;2;3] |> getNthElement 2020
@@ -58,23 +59,14 @@ let ``secondSequence nr 2020`` () =
     let (_, nr)= game [1;2;16;19;18;0] |> getNthElement 2020
     Assert.Equal(536, nr)
 
-
-
-
-
-
-
-[<Fact>]
-let ``firstSequence`` () =
-    let answer = [(1,0); (2,3) ; (3,6); (4,0); (5,3); (6,3); (7,1); (8,0) ; (9,4); (10,0) ] 
-    let foo = game test_1 |> Seq.take 10 |> Seq.toList
-    let isMatch = answer = foo
-    Assert.True(isMatch)
-
-    let (turn, nr)= game test_1 |> Seq.nth (9 - 1)
-    Assert.Equal(4, nr)
+//    let largeNr = 30000000 
+//    let (_, nr)= game [0;3;6] |> getNthElement largeNr 
+//      Assert.Equal(175594, nr)
 
 [<EntryPoint>]
 let main argv =
-    printfn "Hello World from F#!"
+    let largeNr = 30000000 
+    let (_, nr)= game [1;2;16;19;18;0] |> getNthElement largeNr
+
+    printfn "The answer is %A" nr 
     0 
