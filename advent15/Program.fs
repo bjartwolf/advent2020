@@ -1,7 +1,7 @@
 ﻿open System
 open Xunit
 
-let test_1 = seq { 0; 3; 6}
+let test_1 = [ 0; 3; 6]
 
 let rec yieldNext (m: Map<int,int>) (last: int) : int seq =
     seq {
@@ -9,8 +9,9 @@ let rec yieldNext (m: Map<int,int>) (last: int) : int seq =
         yield! yieldNext m last 
     }
 
-let game (input: int seq) : int seq =
-    let m = Map.empty 
+let game (input: int list) : int seq =
+    let foo = input |> List.mapi (fun i  -> fun e -> (i+1,e))
+    let m = Map.ofSeq foo
     seq {
         yield! input
         yield! yieldNext m (input |> Seq.last)
