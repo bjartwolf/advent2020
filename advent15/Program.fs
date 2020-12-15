@@ -2,27 +2,37 @@
 open Xunit
 
 let test_1 = [ 0; 3; 6]
+type Spoken = SpokenOnce of int | SpokenTwice of (int*int)
 
-let rec yieldNext (m: Map<int,int>) (last: int) : int seq =
+let rec yieldNext (m: Map<int,Spoken>) (last: int) (turn: int)  : (int*int) seq =
     seq {
-        yield last 
-        yield! yieldNext m last 
+        let lastSeenOpt = Map.tryFind last m
+        let (next,m') = match lastSeenOpt with
+                            | None -> (last, Map.add last (SpokenOnce turn) m) 
+                            | Some (SpokenOnce lastseen) -> (turn - 1 - lastseen , Map.add last (SpokenOnce turn) m)
+                            | Some (SpokenTwice (firstseen, lastseen))  -> (firstseen - lastseen, Map.add last (SpokenOnce turn) m)
+        yield (turn, next)
+        yield! yieldNext m' next (turn + 1)
     }
 
-let game (input: int list) : int seq =
-    let foo = input |> List.mapi (fun i  -> fun e -> (i+1,e))
+let game (input: int list) : (int*int) seq =
+    let foo = input |> List.mapi (fun i  -> fun e -> (e, SpokenOnce (i+1)))
     let m = Map.ofSeq foo
     seq {
-        yield! input
-        yield! yieldNext m (input |> Seq.last)
+        for (key, value) in foo do
+            match value with 
+                | SpokenOnce foo -> yield (foo, key) 
+        yield! yieldNext m (input |> Seq.last) (foo.Length + 1)
     } 
 
 [<Fact>]
 let ``firstSequence`` () =
-    let answer = [0; 3 ; 6; 6 ; 6] 
-    let foo = game test_1 |> Seq.take 5
-    Assert.Equal(answer, foo)
-
+    let answer = [(1,0); (2,3) ; (3,6); (4,0); (5,3); (6,3); (7,1) ] 
+    let foo = game test_1 |> Seq.take 7 |> Seq.toList
+    printfn "answer %A" answer
+    printfn "foo %A" foo
+    let isMatch = answer = foo
+    Assert.True(isMatch)
 
 [<EntryPoint>]
 let main argv =
