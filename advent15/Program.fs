@@ -31,14 +31,48 @@ let game (input: int list) : (int*int) seq =
         yield! yieldNext m (input |> Seq.last) (foo.Length + 1)
     } 
 
+let getNthElement (elemntNr: int) (sekvens: (int*int) seq) : int*int = 
+    sekvens |> Seq.nth (elemntNr - 1) 
+
+[<Fact>]
+let ``firstSequence nr 2020`` () =
+    let (turn, nr)= game test_1 |> getNthElement 2020
+    Assert.Equal(2020, turn)
+    Assert.Equal(436, nr)
+
+[<Fact>]
+let ``secondSequence nr 2020`` () =
+    let (_, nr)= game [1;3;2] |> getNthElement 2020
+    Assert.Equal(1, nr)
+    let (_, nr)= game [2;1;3] |> getNthElement 2020
+    Assert.Equal(10, nr)
+    let (_, nr)= game [1;2;3] |> getNthElement 2020
+    Assert.Equal(27, nr)
+    let (_, nr)= game [2;3;1] |> getNthElement 2020
+    Assert.Equal(78, nr)
+    let (_, nr)= game [3;2;1] |> getNthElement 2020
+    Assert.Equal(438, nr)
+    let (_, nr)= game [3;1;2] |> getNthElement 2020
+    Assert.Equal(1836, nr)
+
+    let (_, nr)= game [1;2;16;19;18;0] |> getNthElement 2020
+    Assert.Equal(536, nr)
+
+
+
+
+
+
+
 [<Fact>]
 let ``firstSequence`` () =
     let answer = [(1,0); (2,3) ; (3,6); (4,0); (5,3); (6,3); (7,1); (8,0) ; (9,4); (10,0) ] 
     let foo = game test_1 |> Seq.take 10 |> Seq.toList
-    printfn "answer %A" answer
-    printfn "foo %A" foo
     let isMatch = answer = foo
     Assert.True(isMatch)
+
+    let (turn, nr)= game test_1 |> Seq.nth (9 - 1)
+    Assert.Equal(4, nr)
 
 [<EntryPoint>]
 let main argv =
