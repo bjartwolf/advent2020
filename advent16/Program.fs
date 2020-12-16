@@ -47,6 +47,16 @@ let rec errorsInTicket (t: Ticket) (rs: RulesWithDescriptions) : ErrorResult =
                             | Some error -> Some error 
         | [] -> None
 
+let validateTicket (t: Ticket) (rs: RulesWithDescriptions) : Ticket option =
+    match (errorsInTicket t rs) with 
+        | Some _ -> None
+        | None -> Some t
+
+let validateTickets (ts: Tickets) (rs: RulesWithDescriptions) : Ticket list =
+    ts 
+        |> List.map (fun t -> validateTicket t rs)
+        |> List.choose id
+
 let sumFromTickets (ts: Tickets) (rs: RulesWithDescriptions) : int =
     ts 
         |> List.map (fun t -> errorsInTicket t rs) 
@@ -103,6 +113,12 @@ let parsedTickets: Tickets =
 let ``nr 1`` () = 
     Assert.Equal(23925, sumFromTickets parsedTickets parsedRules)
 
+
+[<Fact>]
+let ``filter out false rules`` () = 
+    let remainingTickets = validateTickets parsedTickets parsedRules |> List.length
+    Assert.Equal(190, remainingTickets)
+ 
 [<Fact>]
 let ``example`` () = 
     let upr1 = (1,3,5,7)
@@ -116,6 +132,9 @@ let ``example`` () =
                                     [55;2;20];
                                     [38;6;12] ]
     Assert.Equal(71, sumFromTickets nearbyTickets rs)
+
+    let remainingTickets = validateTickets nearbyTickets rs 
+    Assert.Equal(1, remainingTickets |> List.length)
 
 [<EntryPoint>]
 let main argv =
