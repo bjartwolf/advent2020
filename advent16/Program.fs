@@ -13,6 +13,8 @@ type RuleValidators = RuleValidator list
 type Tickets = Ticket list
 type RuleWithDescription = string * Rule 
 type RulesWithDescriptions = RuleWithDescription list 
+type MatchingRule = RuleWithDescription * int list
+type MatchingRules = MatchingRule list
 
 let ruleFromUnparsedRule (up: UnparsedRule) : Rule =
     let (first_low, first_high,second_low,second_high) = up
@@ -100,10 +102,12 @@ let ``parseRulesWorks`` () =
     let match2 = r2 = (50,875,884,954)
     Assert.True(match2)
     
+let parseRawRules (i: string array) : RulesWithDescriptions =
+    i |> Array.map (parseRuleWithDescription) |> Array.toList 
+      |> List.map (fun (d,r) -> (d,ruleFromUnparsedRule r))
+
 let parsedRules : RulesWithDescriptions =
-    let rawRules = IO.File.ReadAllLines "rules.txt"
-    rawRules |> Array.map (parseRuleWithDescription) |> Array.toList 
-             |> List.map (fun (d,r) -> (d,ruleFromUnparsedRule r))
+    parseRawRules (IO.File.ReadAllLines "rules.txt")
 
 let parsedTickets: Tickets =
     let rawRules = IO.File.ReadAllLines "tickets.txt"
@@ -118,13 +122,24 @@ let ``nr 1`` () =
 let ``filter out false rules`` () = 
     let remainingTickets = validateTickets parsedTickets parsedRules |> List.length
     Assert.Equal(190, remainingTickets)
+
+let matchRuleWithTickets (ts: Tickets) (rs: RuleWithDescription) : MatchingRule =
+    let rec transpose = function
+        | [] -> failwith "cannot transpose a 0-by-n matrix"
+        | [] :: xs -> [] 
+        | xs -> List.map List.head xs :: transpose (List.map List.tail xs)
+    let cols = transpose ts
+    let validatedCols = cols |> List.mapi (fun i -> fun t -> (i, errorsInTicket t [rs]))
+                             |> List.where (fun (i,e) -> e = None) |> List.map (fun (i,_) -> i)
+    (rs, validatedCols) 
  
 [<Fact>]
 let ``example`` () = 
     let upr1 = (1,3,5,7)
     let upr2 = (6,11,33,44)
     let upr3 = (13,40,45,50)
-    let rs = [("foo", ruleFromUnparsedRule upr1);
+    let rs: RulesWithDescriptions =
+             [("foo", ruleFromUnparsedRule upr1);
               ("foo2", ruleFromUnparsedRule upr2);
               ("foo3", ruleFromUnparsedRule upr3) ]
     let nearbyTickets : Tickets = [ [7;3;47];
@@ -135,6 +150,39 @@ let ``example`` () =
 
     let remainingTickets = validateTickets nearbyTickets rs 
     Assert.Equal(1, remainingTickets |> List.length)
+    let matching = rs |> List.map (fun r -> matchRuleWithTickets nearbyTickets r)
+    Assert.Equal(0, matching |> List.where (fun (r, l) -> l.Length > 0) |> List.length)
+
+let rec findMatches (matches: MatchingRules) : MatchingRules =
+    let singleMatch = matches |> List.where (fun (_,cols) -> cols.Length = 1) 
+    if (singleMatch |> List.length) > 1 then failwith "Not sure i can do that"
+    if (singleMatch |> List.length) = 0 then
+         matches 
+    else let (smr,m) = singleMatch |> List.head
+         let matchedRow = m |> List.head
+         let filteredMatches = 
+            matches |> List.filter (fun (_ ,cols) -> cols.Length <> 1)  
+                    |> List.map (fun ((d,r),cols) -> ((d,r), (cols |> List.filter (fun x -> x <> matchedRow))))
+         (smr,m) :: (findMatches filteredMatches)
+                                             
+//    et removeThatFromTheOthers = matches |> List.map (fun ((d,r),cols) -> if (d = smr) then (//findMatchmatches 
+
+[<Fact>]
+let ``example 2`` () = 
+    let rules = [| "class: 0-1 or 4-19"; "row: 0-5 or 8-19"; "seat: 0-13 or 16-19" |]
+    
+    let rs: RulesWithDescriptions = parseRawRules rules
+    let nearbyTickets : Tickets = [ [3;9;18] ; [15;1;5]; [5;14;9]]
+
+    let remainingTickets = validateTickets nearbyTickets rs 
+    Assert.Equal(3, remainingTickets |> List.length)
+    
+    let matching = rs |> List.map (fun r -> matchRuleWithTickets nearbyTickets r)
+    Assert.Equal(3, matching |> List.where (fun (r, l) -> l.Length > 0) |> List.length)
+    let foo = findMatches matching
+    Assert.Equal(2, foo |> List.length)
+
+
 
 [<EntryPoint>]
 let main argv =
