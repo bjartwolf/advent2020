@@ -31,17 +31,6 @@ let ruleValidatorForSingleField (rs: RulesWithDescriptions) (field: int) : Error
     else
         None 
      
-let validatorFromRule (rs: RulesWithDescriptions) : Ticket -> ErrorResult = 
-    fun t -> 
-        let brokenFields = seq {
-            for field in t do
-                    match ruleValidatorForSingleField rs field with
-                        | None -> ()
-                        | Some f -> yield f 
-        }
-        if (brokenFields |> Seq.isEmpty) then None
-        else (brokenFields |> Seq.head |> Some) 
-
 let rec errorsInTicket (t: Ticket) (rs: RulesWithDescriptions) : ErrorResult = 
     match t with 
         | t1 :: rest -> match (ruleValidatorForSingleField rs t1) with 
@@ -156,8 +145,7 @@ let ``example`` () =
 let rec findMatches (matches: MatchingRules) : MatchingRules =
     let singleMatch = matches |> List.where (fun (_,cols) -> cols.Length = 1) 
     if (singleMatch |> List.length) > 1 then failwith "Not sure i can do that"
-    if (singleMatch |> List.length) = 0 then
-         matches 
+    if (singleMatch |> List.length) = 0 then matches 
     else let (smr,m) = singleMatch |> List.head
          let matchedRow = m |> List.head
          let filteredMatches = 
@@ -165,22 +153,24 @@ let rec findMatches (matches: MatchingRules) : MatchingRules =
                     |> List.map (fun ((d,r),cols) -> ((d,r), (cols |> List.filter (fun x -> x <> matchedRow))))
          (smr,m) :: (findMatches filteredMatches)
                                              
-//    et removeThatFromTheOthers = matches |> List.map (fun ((d,r),cols) -> if (d = smr) then (//findMatchmatches 
+let findColForRules (rs: MatchingRules) : int list = 
+    rs |> List.map (fun ((_,_), ints) -> ints |> List.head)
 
 [<Fact>]
 let ``example 2`` () = 
     let rules = [| "class: 0-1 or 4-19"; "row: 0-5 or 8-19"; "seat: 0-13 or 16-19" |]
-    
     let rs: RulesWithDescriptions = parseRawRules rules
     let nearbyTickets : Tickets = [ [3;9;18] ; [15;1;5]; [5;14;9]]
-
     let remainingTickets = validateTickets nearbyTickets rs 
     Assert.Equal(3, remainingTickets |> List.length)
-    
     let matching = rs |> List.map (fun r -> matchRuleWithTickets nearbyTickets r)
     Assert.Equal(3, matching |> List.where (fun (r, l) -> l.Length > 0) |> List.length)
     let foo = findMatches matching
-    Assert.Equal(2, foo |> List.length)
+    let rulesBeginsWithWord = foo |> List.filter ( fun ((des,_), _) -> des.StartsWith("s"));
+    let cols = findColForRules rulesBeginsWithWord 
+    let myTicket = [11;12;13] 
+    let product = cols |> List.map (fun c -> myTicket.[c]) |> List.fold (*) 1 
+    Assert.Equal(13, product) 
 
 
 
