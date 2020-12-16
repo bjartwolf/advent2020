@@ -22,8 +22,10 @@ let ruleFromUnparsedRule (up: UnparsedRule) : Rule =
 let ruleValidatorForSingleField (rs: Rules) (field: int) : ErrorResult =
     let validRules = rs |> List.where (fun r -> ((field >= r.r1.low) && (field <= r.r1.high)) ||
                                                 ((field >= r.r2.low) && (field <= r.r2.high)))
-    if (validRules|> Seq.isEmpty) then Some field 
-    else None 
+    if (validRules|> Seq.isEmpty) then
+        Some field 
+    else
+        None 
      
 let validatorFromRule (rs: Rules) : Ticket -> ErrorResult = 
     fun t -> 
@@ -43,6 +45,53 @@ let rec errorsInTicket (t: Ticket) (rs: Rules) : ErrorResult =
                             | Some error -> Some error 
         | [] -> None
 
+let sumFromTickets (ts: Tickets) (rs: Rules) : int =
+    ts 
+        |> List.map (fun t -> errorsInTicket t rs) 
+        |> List.choose id
+        |> List.sum
+
+
+let parseRule (s: string) = 
+    let s' = (s.Split(": ")).[1] 
+    let s'' = s'.Split(" or ")
+    let r1 = s''.[0].Split("-")
+    let r2 = s''.[1].Split("-")
+    (int r1.[0], int r1.[1], int r2.[0], int r2.[1])
+
+let parseTicket (s:string) =
+    let rawTickets = s.Split(",") 
+    rawTickets |> Array.map (int) |> Array.toList
+
+[<Fact>]
+let ``parseTicketWorks`` () =
+    let t = [917;157;627;684;64;737;544;626;363;77;742;911;781;358;138;253;545;93;95;500]
+    let rawTicket = "917,157,627,684,64,737,544,626,363,77,742,911,781,358,138,253,545,93,95,500"
+    let ok = t = parseTicket rawTicket
+    Assert.True(ok)
+   
+[<Fact>]
+let ``parseRulesWorks`` () =
+    let r1 = parseRule "departure location: 29-917 or 943-952"
+    let match1 = r1 = (29,917,943,952)
+    Assert.True(match1)
+    let r2 = parseRule "departure station: 50-875 or 884-954"
+    let match2 = r2 = (50,875,884,954)
+    Assert.True(match2)
+    
+let parsedRules : Rules =
+    let rawRules = IO.File.ReadAllLines "rules.txt"
+    rawRules |> Array.map (parseRule) |> Array.toList 
+             |> List.map (ruleFromUnparsedRule)
+
+let parsedTickets: Tickets =
+    let rawRules = IO.File.ReadAllLines "tickets.txt"
+    rawRules |> Array.map (parseTicket) |> Array.toList 
+
+[<Fact>]
+let ``nr 1`` () = 
+    Assert.Equal(23925, sumFromTickets parsedTickets parsedRules)
+
 [<Fact>]
 let ``example`` () = 
     let upr1 = (1,3,5,7)
@@ -51,16 +100,11 @@ let ``example`` () =
     let rs = [ruleFromUnparsedRule upr1;
               ruleFromUnparsedRule upr2;
               ruleFromUnparsedRule upr3 ]
-    // let ticket : Ticket = [7;1;4] ignore own ticket for now
     let nearbyTickets : Tickets = [ [7;3;47];
                                     [40;4;50];
                                     [55;2;20];
                                     [38;6;12] ]
-    let errorResults = nearbyTickets 
-                        |> List.map (fun t -> errorsInTicket t rs) 
-                        |> List.choose id
-    let sum = errorResults |> List.sum
-    Assert.Equal(71, sum)
+    Assert.Equal(71, sumFromTickets nearbyTickets rs)
 
 [<EntryPoint>]
 let main argv =
