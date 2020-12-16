@@ -99,8 +99,10 @@ let parsedRules : RulesWithDescriptions =
     parseRawRules (IO.File.ReadAllLines "rules.txt")
 
 let parsedTickets: Tickets =
-    let rawRules = IO.File.ReadAllLines "tickets.txt"
-    rawRules |> Array.map (parseTicket) |> Array.toList 
+    (IO.File.ReadAllLines "tickets.txt") |> Array.map (parseTicket) |> Array.toList 
+
+let parsedTicket: Ticket =
+    parseTicket (IO.File.ReadAllText "ticket.txt")
 
 [<Fact>]
 let ``nr 1`` () = 
@@ -176,5 +178,15 @@ let ``example 2`` () =
 
 [<EntryPoint>]
 let main argv =
-    printfn "Hello World from F#!"
+    let rs = parsedRules 
+    let nearbyTickets : Tickets = parsedTickets 
+    let remainingTickets = validateTickets nearbyTickets rs 
+    let matching = rs |> List.map (fun r -> matchRuleWithTickets remainingTickets r)
+    let foo = findMatches matching
+    let rulesBeginsWithWord = foo |> List.filter ( fun ((des,_), _) -> des.StartsWith("departure"));
+    let cols = findColForRules rulesBeginsWithWord 
+    let myTicket = parsedTicket 
+    let product = cols |> List.map (fun c -> myTicket.[c]) |> List.map (int64) |> List.fold (*) 1L 
+
+    printfn " The answer is %A" product
     0 // return an integer exit code
