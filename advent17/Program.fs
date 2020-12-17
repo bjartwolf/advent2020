@@ -33,6 +33,20 @@ let nextGeneration (s: Points) : Points =
                                         else if (not isAlive && (aliveNeighbors = 3)) then true
                                         else false )
 
+let inputData : Points =
+    let mutable i = 0
+    let mutable j = 0
+    let points = seq {
+        for line in IO.File.ReadAllLines("data.txt") do
+            j <- 0
+            i <- i + 1 
+            for char in line do
+                j <- j + 1
+                if (char = '#') then yield (i,j,0)
+    }
+    points |> Set.ofSeq
+    
+
 [<Fact>]
 let ``find alive neighbors`` () =
     let n = countAliveNeighbors (10,1,2) (Set.empty)
@@ -40,6 +54,28 @@ let ``find alive neighbors`` () =
 
 let countPlane (s: Points) (plane: int) : int =
     s |> Set.filter (fun (_,_,p) -> p = plane) |> Set.count
+
+[<Fact>]
+let ``input 6 rounds is 120 alive`` () =
+    let gen0: Points = inputData 
+    let gen1 = nextGeneration gen0
+    let gen2 = nextGeneration gen1
+    let gen3 = nextGeneration gen2
+    let gen4 = nextGeneration gen3
+    let gen5 = nextGeneration gen4
+    let gen6 = nextGeneration gen5
+    Assert.Equal(247, gen6 |> Set.count)
+
+[<Fact>]
+let ``test 6 rounds is 120 alive`` () =
+    let gen0: Points = Set.ofList[ (0,1,0); (1,2,0); (2,0,0); (2,1,0); (2,2,0) ] 
+    let gen1 = nextGeneration gen0
+    let gen2 = nextGeneration gen1
+    let gen3 = nextGeneration gen2
+    let gen4 = nextGeneration gen3
+    let gen5 = nextGeneration gen4
+    let gen6 = nextGeneration gen5
+    Assert.Equal(112, gen6 |> Set.count)
 
 [<Fact>]
 let ``test1`` () =
