@@ -1,19 +1,27 @@
 ﻿open System
 open Xunit
 
-type Operator = Plus | Mult | Nr of int
-type Expressions = Operator list
-type Stykke = int * Expressions 
+type Exp = Plus | Mult | Nr of int | Exp of Exp list 
+type Expressions = Exp list
 
 let rec calc (es: Expressions) : int = 
     match es with 
+        | a :: b :: Exp x :: rest ->  calc ( a :: b :: Nr (calc x) :: rest)
+        | Exp x :: a :: b :: rest ->  calc ( Nr (calc x) :: a :: b :: rest)
         | Nr x :: Plus :: Nr y :: rest ->  calc ( Nr (x + y) :: rest)
         | Nr x :: Mult :: Nr y :: rest ->  calc ( Nr (x * y) :: rest ) 
         | [Nr x] -> x 
+        | [Exp x] -> calc x 
 
 [<Fact>]
 let ``foo`` () =
-    Assert.Equal(3,calc [Nr 1 ; Plus; Nr 2])
+    let exp = [Nr 1 ; Plus; Nr 2]
+    Assert.Equal(3,calc exp)
+
+    Assert.Equal(5, calc [Exp [Nr 2; Plus; Nr 3]]) 
+
+    let exp = [Nr 1 ; Plus; Exp [Nr 2; Plus; Nr 3]]
+    Assert.Equal(6,calc exp) 
 
     let foo : Expressions = [Nr 1 ; Plus; Nr 2; Mult; Nr 3 ; Plus ; Nr 4 ; Mult ; Nr 5 ; Plus ; Nr 6] 
 
