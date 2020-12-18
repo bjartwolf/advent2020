@@ -25,17 +25,26 @@ let rec parse (s: string) : Expressions =
     let indexOfPlus = s.IndexOf('+')
     let indexOfMult = s.IndexOf('*')
     if (indexOfMult = -1 && indexOfPlus = -1) then [Nr (int s)] 
-    else let s' = s.Split("+") 
-         printfn "%A" s'
-         [Nr (int s'.[0]) ; Plus ; Nr (int s'.[1])]
+    else if (indexOfPlus <> -1 && (indexOfMult = -1 || indexOfPlus < indexOfMult )) then 
+        let s' = s.Substring(0,indexOfPlus)
+        let s'' = s.Substring(indexOfPlus + 1)
+        Nr (int s') ::  Plus :: parse s''
+    else
+        let s' = s.Substring(0,indexOfMult)
+        let s'' = s.Substring(indexOfMult + 1)
+        Nr (int s') ::  Mult :: parse s''
 
 [<Fact>]
 let ``Parser works`` () =
-   let answer2 = ([Nr 1; Plus; Nr 3] = (parse "1 + 3"))
-   Assert.True(answer2)
-   let answer = [Nr 1] = (parse "1")
-   Assert.True(answer)
- 
+   let answer3 = ([Nr 1; Plus; Nr 3; Plus; Nr 5] = (parse "1 + 3 + 5"))
+   Assert.True(answer3)
+   let answer4 = ([Nr 1; Plus; Nr 3; Plus; Nr 5; Mult; Nr 6] = (parse "1 + 3 + 5 * 6"))
+   Assert.True(answer4)
+
+[<Fact>]
+let ``Calc on strings works`` () =
+    Assert.Equal(71, calc (parse "1 + 2 * 3 + 4 * 5 + 6"))
+
 [<EntryPoint>]
 let main argv =
     printfn "Hello World from F#!"
