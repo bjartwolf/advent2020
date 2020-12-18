@@ -15,18 +15,12 @@ let rec calc (es: Expressions) : int =
 
 [<Fact>]
 let ``foo`` () =
-    let exp = [Nr 1 ; Plus; Nr 2]
-    Assert.Equal(3,calc exp)
-
-    Assert.Equal(5, calc [Exp [Nr 2; Plus; Nr 3]]) 
-
-    let exp = [Nr 1 ; Plus; Exp [Nr 2; Plus; Nr 3]]
-    Assert.Equal(6,calc exp) 
-
-    let foo : Expressions = [Nr 1 ; Plus; Nr 2; Mult; Nr 3 ; Plus ; Nr 4 ; Mult ; Nr 5 ; Plus ; Nr 6] 
-    Assert.Equal(71,calc foo)
-
+    Assert.Equal(71,calc [Nr 1 ; Plus; Nr 2; Mult; Nr 3 ; Plus ; Nr 4 ; Mult ; Nr 5 ; Plus ; Nr 6] )
     Assert.Equal(51, calc [Nr 1; Plus ; Exp [Nr 2 ; Mult; Nr 3]; Plus ; Exp [Nr 4 ; Mult ; Exp [ Nr 5; Plus; Nr 6]]])
+    Assert.Equal(26, calc [Nr 2; Mult; Nr 3; Plus; Exp [Nr 4; Mult; Nr 5]]) 
+    Assert.Equal(437, calc [Nr 5; Plus ; Exp [Nr 8 ; Mult ; Nr 3; Plus; Nr 9; Plus ; Nr 3; Mult; Nr 4; Mult; Nr 3]])
+    Assert.Equal(12240, calc [Nr 5; Mult; Nr 9; Mult; Exp[Nr 7 ; Mult; Nr 3; Mult; Nr 3; Plus; Nr 9; Mult; Nr 3; Plus; Exp [Nr 8; Plus; Nr 6; Mult; Nr 4 ]]])
+    Assert.Equal(13632, calc [Exp[Exp[ Nr 2; Plus; Nr 4; Mult; Nr 9]; Mult; Exp [Nr 6; Plus; Nr 9; Mult; Nr 8; Plus; Nr 6]; Plus; Nr 6]; Plus; Nr 2; Plus; Nr 4; Mult; Nr 2])
 
 [<EntryPoint>]
 let main argv =
